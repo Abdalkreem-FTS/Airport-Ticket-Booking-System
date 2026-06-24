@@ -5,8 +5,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI;
 
+/// <summary>
+/// Runs the interactive Spectre.Console application and routes users to role workspaces.
+/// </summary>
 public sealed class ConsoleApp(AppServices services)
 {
+    /// <summary>
+    /// Starts the main role selector and keeps the console app running until exit.
+    /// </summary>
     public void Run()
     {
         while (true)

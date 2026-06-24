@@ -4,8 +4,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Prompts;
 
+/// <summary>
+/// Collects optional filters for manager booking searches.
+/// </summary>
 public static class BookingSearchPrompt
 {
+    /// <summary>
+    /// Builds booking search criteria from console input.
+    /// </summary>
     public static BookingSearchCriteria Ask()
     {
         AnsiConsole.MarkupLine("[grey]Leave any filter empty to skip it.[/]");

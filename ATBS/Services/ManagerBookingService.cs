@@ -4,6 +4,9 @@ using ATBS.Models;
 
 namespace ATBS.Services;
 
+/// <summary>
+/// Filters bookings for managers using booking, passenger, and flight criteria.
+/// </summary>
 public sealed class ManagerBookingService(IBookingRepository bookingRepository, IFlightRepository flightRepository)
     : IManagerBookingService
 {

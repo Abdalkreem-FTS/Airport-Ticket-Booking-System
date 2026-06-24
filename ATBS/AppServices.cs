@@ -8,6 +8,9 @@ using ATBS.Validation;
 
 namespace ATBS.Composition;
 
+/// <summary>
+/// Builds and exposes the application's repositories and services from one place.
+/// </summary>
 public sealed class AppServices
 {
     public IFlightRepository FlightRepository { get; }

@@ -5,8 +5,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Rendering;
 
+/// <summary>
+/// Renders booking records with related passenger and flight information.
+/// </summary>
 public static class BookingTableRenderer
 {
+    /// <summary>
+    /// Displays bookings in a Spectre.Console table.
+    /// </summary>
     public static void Render(
         IReadOnlyList<Booking> bookings,
         IFlightRepository flightRepository,

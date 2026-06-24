@@ -3,8 +3,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Prompts;
 
+/// <summary>
+/// Provides reusable Spectre.Console prompts for optional typed input.
+/// </summary>
 public static class PromptHelpers
 {
+    /// <summary>
+    /// Prompts for optional text and returns null when left empty.
+    /// </summary>
     public static string? OptionalText(string label)
     {
         var value = AnsiConsole.Prompt(
@@ -14,6 +20,9 @@ public static class PromptHelpers
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
+    /// <summary>
+    /// Prompts for an optional decimal value.
+    /// </summary>
     public static decimal? OptionalDecimal(string label)
     {
         while (true)
@@ -33,6 +42,9 @@ public static class PromptHelpers
         }
     }
 
+    /// <summary>
+    /// Prompts for an optional date in yyyy-MM-dd format.
+    /// </summary>
     public static DateOnly? OptionalDate(string label)
     {
         while (true)
@@ -52,6 +64,9 @@ public static class PromptHelpers
         }
     }
 
+    /// <summary>
+    /// Prompts for an optional GUID value.
+    /// </summary>
     public static Guid? OptionalGuid(string label)
     {
         while (true)
@@ -71,6 +86,9 @@ public static class PromptHelpers
         }
     }
 
+    /// <summary>
+    /// Waits for a key press before returning to the previous menu.
+    /// </summary>
     public static void Pause()
     {
         AnsiConsole.WriteLine();

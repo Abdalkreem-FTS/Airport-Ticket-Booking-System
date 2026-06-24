@@ -3,8 +3,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Rendering;
 
+/// <summary>
+/// Renders flight search results with route, date, class, price, and seat details.
+/// </summary>
 public static class FlightTableRenderer
 {
+    /// <summary>
+    /// Displays flights in a Spectre.Console table.
+    /// </summary>
     public static void Render(IReadOnlyList<Flight> flights)
     {
         if (flights.Count == 0)

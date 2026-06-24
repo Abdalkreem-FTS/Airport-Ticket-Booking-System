@@ -8,8 +8,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Screens;
 
+/// <summary>
+/// Lets a passenger change the class of an active booking.
+/// </summary>
 public static class ModifyBookingScreen
 {
+    /// <summary>
+    /// Runs the booking modification workflow for the selected passenger.
+    /// </summary>
     public static void Run(AppServices services, Passenger passenger)
     {
         AppHeader.Render("Modify booking", $"{passenger.FirstName} {passenger.LastName}");

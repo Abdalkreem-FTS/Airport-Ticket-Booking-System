@@ -1,5 +1,8 @@
 namespace ATBS.Models;
 
+/// <summary>
+/// Represents a scheduled flight with route details, capacity, and class pricing.
+/// </summary>
 public sealed class Flight
 {
     public Guid Id { get; init; } = Guid.NewGuid();

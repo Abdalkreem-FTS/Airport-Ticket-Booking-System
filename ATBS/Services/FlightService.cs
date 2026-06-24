@@ -4,6 +4,9 @@ using ATBS.Models;
 
 namespace ATBS.Services;
 
+/// <summary>
+/// Searches available flights using optional passenger-selected criteria.
+/// </summary>
 public sealed class FlightService(IFlightRepository flightRepository) : IFlightService
 {
     public IReadOnlyList<Flight> SearchAvailableFlights(FlightSearchCriteria criteria)

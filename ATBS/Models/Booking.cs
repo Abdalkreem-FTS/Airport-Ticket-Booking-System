@@ -2,6 +2,9 @@ using ATBS.Models.Enums;
 
 namespace ATBS.Models;
 
+/// <summary>
+/// Represents a passenger reservation for a specific flight and class.
+/// </summary>
 public sealed class Booking
 {
     public Guid Id { get; init; } = Guid.NewGuid();

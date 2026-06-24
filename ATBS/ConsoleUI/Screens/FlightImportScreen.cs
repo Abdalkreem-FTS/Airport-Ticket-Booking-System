@@ -5,8 +5,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Screens;
 
+/// <summary>
+/// Previews CSV flight imports, shows validation errors, and saves valid rows.
+/// </summary>
 public static class FlightImportScreen
 {
+    /// <summary>
+    /// Runs the manager CSV import workflow.
+    /// </summary>
     public static void Run(AppServices services)
     {
         AppHeader.Render("Import flights from CSV");

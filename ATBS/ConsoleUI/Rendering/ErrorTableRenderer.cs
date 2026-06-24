@@ -3,8 +3,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Rendering;
 
+/// <summary>
+/// Renders validation and import errors in a consistent table format.
+/// </summary>
 public static class ErrorTableRenderer
 {
+    /// <summary>
+    /// Displays row-level validation errors.
+    /// </summary>
     public static void Render(IReadOnlyList<ValidationError> errors)
     {
         if (errors.Count == 0)

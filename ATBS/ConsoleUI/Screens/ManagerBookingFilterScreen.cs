@@ -4,8 +4,14 @@ using ATBS.ConsoleUI.Rendering;
 
 namespace ATBS.ConsoleUI.Screens;
 
+/// <summary>
+/// Collects manager booking filters and displays matching bookings.
+/// </summary>
 public static class ManagerBookingFilterScreen
 {
+    /// <summary>
+    /// Runs the manager booking search workflow.
+    /// </summary>
     public static void Run(AppServices services)
     {
         AppHeader.Render("Filter bookings");

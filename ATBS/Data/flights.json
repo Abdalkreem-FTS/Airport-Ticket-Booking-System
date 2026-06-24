@@ -1,0 +1,29 @@
+[
+  {
+    "Id": "55b819da-cd15-44c4-80d3-9dfcd575e0ef",
+    "FlightNumber": "ATBS-100",
+    "DepartureCountry": "Palestine",
+    "DestinationCountry": "Saudi Arabia",
+    "DepartureDate": "2026-07-01T16:56:30.032935+00:00",
+    "DepartureAirport": "PNA",
+    "ArrivalAirport": "SANA",
+    "Capacity": 160,
+    "ClassPrices": [
+      {
+        "Class": 1,
+        "Price": 250,
+        "AvailableSeats": 120
+      },
+      {
+        "Class": 2,
+        "Price": 650,
+        "AvailableSeats": 30
+      },
+      {
+        "Class": 3,
+        "Price": 1200,
+        "AvailableSeats": 10
+      }
+    ]
+  }
+]

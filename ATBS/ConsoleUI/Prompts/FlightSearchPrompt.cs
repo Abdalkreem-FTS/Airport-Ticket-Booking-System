@@ -4,8 +4,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Prompts;
 
+/// <summary>
+/// Collects optional filters for passenger flight searches.
+/// </summary>
 public static class FlightSearchPrompt
 {
+    /// <summary>
+    /// Builds flight search criteria from console input.
+    /// </summary>
     public static FlightSearchCriteria Ask()
     {
         AnsiConsole.MarkupLine("[grey]Leave any filter empty to skip it.[/]");

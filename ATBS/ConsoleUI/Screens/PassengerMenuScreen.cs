@@ -5,8 +5,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Screens;
 
+/// <summary>
+/// Shows the passenger workspace and routes passenger actions to their screens.
+/// </summary>
 public static class PassengerMenuScreen
 {
+    /// <summary>
+    /// Runs the passenger menu after selecting a passenger profile.
+    /// </summary>
     public static void Run(AppServices services)
     {
         AppHeader.Render("Passenger workspace", "Select a passenger profile for this test session.");

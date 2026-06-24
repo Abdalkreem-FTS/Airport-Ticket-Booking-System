@@ -3,6 +3,9 @@ using ATBS.Abstractions;
 
 namespace ATBS.Storage;
 
+/// <summary>
+/// Persists collections as JSON files in the local file system.
+/// </summary>
 public sealed class JsonFileStorage : IFileStorage
 {
     private static readonly JsonSerializerOptions SerializerOptions = new()

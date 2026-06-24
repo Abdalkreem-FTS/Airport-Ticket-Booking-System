@@ -5,6 +5,9 @@ using ATBS.Models.Enums;
 
 namespace ATBS.Services;
 
+/// <summary>
+/// Applies booking rules and keeps flight seat availability in sync.
+/// </summary>
 public sealed class BookingService(
     IBookingRepository bookingRepository,
     IFlightRepository flightRepository,

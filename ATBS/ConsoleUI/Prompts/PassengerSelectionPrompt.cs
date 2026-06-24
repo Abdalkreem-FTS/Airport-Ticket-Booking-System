@@ -3,8 +3,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Prompts;
 
+/// <summary>
+/// Lets the tester choose which passenger profile to use.
+/// </summary>
 public static class PassengerSelectionPrompt
 {
+    /// <summary>
+    /// Returns the selected passenger, or null when no passengers exist.
+    /// </summary>
     public static Passenger? Ask(IReadOnlyList<Passenger> passengers)
     {
         if (passengers.Count == 0)

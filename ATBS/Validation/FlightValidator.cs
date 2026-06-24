@@ -4,6 +4,9 @@ using ATBS.Models;
 
 namespace ATBS.Validation;
 
+/// <summary>
+/// Validates flight data before it is saved or imported.
+/// </summary>
 public sealed class FlightValidator : IValidator<Flight>
 {
     public IReadOnlyList<ValidationError> Validate(Flight flight)

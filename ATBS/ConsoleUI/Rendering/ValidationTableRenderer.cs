@@ -3,8 +3,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Rendering;
 
+/// <summary>
+/// Renders model validation rules for manager guidance.
+/// </summary>
 public static class ValidationTableRenderer
 {
+    /// <summary>
+    /// Displays validation metadata in a Spectre.Console table.
+    /// </summary>
     public static void Render(IReadOnlyList<ValidationRuleDescription> rules)
     {
         var table = new Table()

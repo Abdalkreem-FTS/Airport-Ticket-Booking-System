@@ -4,8 +4,14 @@ using ATBS.ConsoleUI.Rendering;
 
 namespace ATBS.ConsoleUI.Screens;
 
+/// <summary>
+/// Collects flight search filters and displays matching available flights.
+/// </summary>
 public static class FlightSearchScreen
 {
+    /// <summary>
+    /// Runs the passenger flight search workflow.
+    /// </summary>
     public static void Run(AppServices services)
     {
         AppHeader.Render("Search flights");

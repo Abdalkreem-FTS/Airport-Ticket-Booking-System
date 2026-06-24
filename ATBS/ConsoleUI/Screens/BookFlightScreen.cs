@@ -8,8 +8,14 @@ using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Screens;
 
+/// <summary>
+/// Guides a passenger through searching, selecting, and confirming a flight booking.
+/// </summary>
 public static class BookFlightScreen
 {
+    /// <summary>
+    /// Runs the complete passenger booking workflow.
+    /// </summary>
     public static void Run(AppServices services, Passenger passenger)
     {
         AppHeader.Render("Book a flight", "Search first, then select a flight and class.");

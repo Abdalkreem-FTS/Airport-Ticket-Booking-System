@@ -6,6 +6,9 @@ using ATBS.Models.Enums;
 
 namespace ATBS.Services;
 
+/// <summary>
+/// Reads flight CSV files, maps rows to flights, validates them, and saves valid rows.
+/// </summary>
 public sealed class FlightImportService(IFlightRepository flightRepository, IValidator<Flight> flightValidator)
     : IFlightImportService
 {
