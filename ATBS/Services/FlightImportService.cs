@@ -44,11 +44,12 @@ public sealed class FlightImportService(IFlightRepository flightRepository, IVal
             }
 
             var validationErrors = flightValidator.Validate(mappedFlight)
-                .Select(error => WithRowNumber(error, row.RowNumber));
+                .Select(error => WithRowNumber(error, row.RowNumber))
+                .ToList();
 
             errors.AddRange(validationErrors);
 
-            if (errors.All(error => error.RowNumber != row.RowNumber))
+            if (validationErrors.Count == 0)
             {
                 validFlights.Add(mappedFlight);
             }
@@ -174,6 +175,7 @@ public sealed class FlightImportService(IFlightRepository flightRepository, IVal
         }
 
         AddParseError(field, "Value must be a valid date time.", value, rowNumber, errors);
+        
         return null;
     }
 
@@ -185,6 +187,7 @@ public sealed class FlightImportService(IFlightRepository flightRepository, IVal
         }
 
         AddParseError(field, "Value must be a whole number.", value, rowNumber, errors);
+        
         return null;
     }
 
@@ -196,6 +199,7 @@ public sealed class FlightImportService(IFlightRepository flightRepository, IVal
         }
 
         AddParseError(field, "Value must be a valid money amount.", value, rowNumber, errors);
+        
         return null;
     }
 
@@ -224,39 +228,7 @@ public sealed class FlightImportService(IFlightRepository flightRepository, IVal
             RowNumber = rowNumber
         };
 
-    private static string Get(IReadOnlyList<string> columns, int index) =>
-        index < columns.Count ? columns[index].Trim() : string.Empty;
+    private static string Get(IReadOnlyList<string> columns, int index) => index < columns.Count ? columns[index].Trim() : string.Empty;
 
-    private static List<string> ParseCsvLine(string line)
-    {
-        var values = new List<string>();
-        var current = new StringBuilder();
-        var inQuotes = false;
-
-        for (var index = 0; index < line.Length; index++)
-        {
-            var character = line[index];
-            switch (character)
-            {
-                case '"' when inQuotes && index + 1 < line.Length && line[index + 1] == '"':
-                    current.Append('"');
-                    index++;
-                    continue;
-                case '"':
-                    inQuotes = !inQuotes;
-                    continue;
-                case ',' when !inQuotes:
-                    values.Add(current.ToString());
-                    current.Clear();
-                    continue;
-                default:
-                    current.Append(character);
-                    break;
-            }
-        }
-
-        values.Add(current.ToString());
-        
-        return values;
-    }
+    private static List<string> ParseCsvLine(string line) => line.Split(',').ToList();
 }
