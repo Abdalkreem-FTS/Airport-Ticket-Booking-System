@@ -24,7 +24,7 @@ public sealed class FlightValidator : IValidator<Flight>
             errors.Add(new ValidationError
             {
                 Field = nameof(flight.DestinationCountry),
-                Message = "Destination country must be different from departure country."
+                Message = FlightValidationRules.DifferentDestinationCountryMessage
             });
         }
 
@@ -33,7 +33,7 @@ public sealed class FlightValidator : IValidator<Flight>
             errors.Add(new ValidationError
             {
                 Field = nameof(flight.ArrivalAirport),
-                Message = "Arrival airport must be different from departure airport."
+                Message = FlightValidationRules.DifferentArrivalAirportMessage
             });
         }
 
@@ -42,7 +42,7 @@ public sealed class FlightValidator : IValidator<Flight>
             errors.Add(new ValidationError
             {
                 Field = nameof(flight.DepartureDate),
-                Message = "Departure date must be today or in the future.",
+                Message = FlightValidationRules.FutureDepartureDateMessage,
                 AttemptedValue = flight.DepartureDate.ToString("O")
             });
         }
@@ -52,7 +52,7 @@ public sealed class FlightValidator : IValidator<Flight>
             errors.Add(new ValidationError
             {
                 Field = nameof(flight.Capacity),
-                Message = "Capacity must be greater than zero.",
+                Message = FlightValidationRules.PositiveCapacityMessage,
                 AttemptedValue = flight.Capacity.ToString()
             });
         }
@@ -62,7 +62,7 @@ public sealed class FlightValidator : IValidator<Flight>
             errors.Add(new ValidationError
             {
                 Field = nameof(flight.ClassPrices),
-                Message = "At least one class price is required."
+                Message = FlightValidationRules.AtLeastOneClassMessage
             });
         }
 
@@ -72,8 +72,8 @@ public sealed class FlightValidator : IValidator<Flight>
             {
                 errors.Add(new ValidationError
                 {
-                    Field = $"{nameof(flight.ClassPrices)}.{classPrice.Class}.Price",
-                    Message = "Class price must be greater than zero.",
+                    Field = FlightValidationRules.PriceField(classPrice.Class),
+                    Message = FlightValidationRules.PositiveClassPriceMessage,
                     AttemptedValue = classPrice.Price.ToString("F2")
                 });
             }
@@ -82,8 +82,8 @@ public sealed class FlightValidator : IValidator<Flight>
             {
                 errors.Add(new ValidationError
                 {
-                    Field = $"{nameof(flight.ClassPrices)}.{classPrice.Class}.AvailableSeats",
-                    Message = "Available seats cannot be negative.",
+                    Field = FlightValidationRules.SeatsField(classPrice.Class),
+                    Message = FlightValidationRules.NonNegativeClassSeatsMessage,
                     AttemptedValue = classPrice.AvailableSeats.ToString()
                 });
             }
@@ -95,7 +95,7 @@ public sealed class FlightValidator : IValidator<Flight>
             errors.Add(new ValidationError
             {
                 Field = nameof(flight.ClassPrices),
-                Message = "Total class seats cannot exceed flight capacity.",
+                Message = FlightValidationRules.SeatsWithinCapacityMessage,
                 AttemptedValue = totalSeats.ToString()
             });
         }
@@ -110,7 +110,7 @@ public sealed class FlightValidator : IValidator<Flight>
             errors.Add(new ValidationError
             {
                 Field = field,
-                Message = "Field is required."
+                Message = FlightValidationRules.RequiredMessage
             });
         }
     }
