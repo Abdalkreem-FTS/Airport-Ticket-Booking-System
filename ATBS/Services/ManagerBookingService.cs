@@ -35,12 +35,15 @@ public sealed class ManagerBookingService(IBookingRepository bookingRepository, 
         }
 
         var flightFiltersRequested = HasFlightFilters(criteria);
-        if (!flightFiltersRequested) return bookings.OrderByDescending(booking => booking.BookedAt).ToList();
+        if (!flightFiltersRequested)
         {
-            var flightsById = flightRepository.GetAll().ToDictionary(flight => flight.Id);
-            bookings = bookings.Where(booking =>
-                flightsById.TryGetValue(booking.FlightId, out var flight) && MatchesFlightFilters(flight, criteria));
+            return bookings.OrderByDescending(booking => booking.BookedAt).ToList();
         }
+
+
+        var flightsById = flightRepository.GetAll().ToDictionary(flight => flight.Id);
+        bookings = bookings.Where(booking => flightsById.TryGetValue(booking.FlightId, out var flight) && MatchesFlightFilters(flight, criteria));
+
 
         return bookings.OrderByDescending(booking => booking.BookedAt).ToList();
     }
