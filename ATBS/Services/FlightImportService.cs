@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using ATBS.Abstractions;
 using ATBS.DTOs;
 using ATBS.Models;
@@ -229,7 +230,7 @@ public sealed class FlightImportService(IFlightRepository flightRepository, IVal
     private static List<string> ParseCsvLine(string line)
     {
         var values = new List<string>();
-        var current = new System.Text.StringBuilder();
+        var current = new StringBuilder();
         var inQuotes = false;
 
         for (var index = 0; index < line.Length; index++)
