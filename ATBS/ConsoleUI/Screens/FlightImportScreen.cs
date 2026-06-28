@@ -37,6 +37,7 @@ public static class FlightImportScreen
         if (preview.ValidRows == 0)
         {
             PromptHelpers.Pause();
+            
             return;
         }
 

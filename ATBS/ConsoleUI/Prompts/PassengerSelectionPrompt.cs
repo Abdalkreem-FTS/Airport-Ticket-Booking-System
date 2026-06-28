@@ -29,6 +29,7 @@ public static class PassengerSelectionPrompt
                 .AddChoices(choices));
 
         var selectedIndex = choices.IndexOf(selected);
+        
         return passengers[selectedIndex];
     }
 }

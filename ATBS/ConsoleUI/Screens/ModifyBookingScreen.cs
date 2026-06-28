@@ -28,6 +28,7 @@ public static class ModifyBookingScreen
         if (bookings.Count == 0)
         {
             PromptHelpers.Pause();
+            
             return;
         }
 
@@ -37,6 +38,7 @@ public static class ModifyBookingScreen
         {
             AnsiConsole.MarkupLine("[red]The flight for this booking was not found.[/]");
             PromptHelpers.Pause();
+            
             return;
         }
 
@@ -45,6 +47,7 @@ public static class ModifyBookingScreen
         {
             EmptyStateRenderer.Render("No other classes are available for this booking.");
             PromptHelpers.Pause();
+            
             return;
         }
 

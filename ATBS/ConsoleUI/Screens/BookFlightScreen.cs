@@ -28,6 +28,7 @@ public static class BookFlightScreen
         if (flights.Count == 0)
         {
             PromptHelpers.Pause();
+            
             return;
         }
 
@@ -37,6 +38,7 @@ public static class BookFlightScreen
         {
             EmptyStateRenderer.Render("No seats are available for this flight.");
             PromptHelpers.Pause();
+            
             return;
         }
 

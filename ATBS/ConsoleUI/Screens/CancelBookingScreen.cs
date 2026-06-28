@@ -27,6 +27,7 @@ public static class CancelBookingScreen
         if (bookings.Count == 0)
         {
             PromptHelpers.Pause();
+            
             return;
         }
 

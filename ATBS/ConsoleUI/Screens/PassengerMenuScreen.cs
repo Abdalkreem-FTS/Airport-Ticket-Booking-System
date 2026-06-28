@@ -21,6 +21,7 @@ public static class PassengerMenuScreen
         {
             EmptyStateRenderer.Render("No passengers exist yet.");
             PromptHelpers.Pause();
+            
             return;
         }
 

@@ -27,6 +27,7 @@ public static class AppHeader
             .Border(BoxBorder.Rounded)
             .BorderColor(Color.Grey)
             .Padding(1, 0));
+        
         AnsiConsole.WriteLine();
     }
 }
