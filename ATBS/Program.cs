@@ -1,4 +1,4 @@
-using ATBS.Composition;
+using ATBS;
 using ATBS.ConsoleUI;
 
 var services = AppServices.Create();

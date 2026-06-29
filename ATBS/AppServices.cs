@@ -6,7 +6,7 @@ using ATBS.Storage;
 using ATBS.Storage.Repositories;
 using ATBS.Validation;
 
-namespace ATBS.Composition;
+namespace ATBS;
 
 /// <summary>
 /// Builds and exposes the application's repositories and services from one place.

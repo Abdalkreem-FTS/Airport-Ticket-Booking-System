@@ -1,4 +1,3 @@
-using ATBS.Composition;
 using ATBS.ConsoleUI.Rendering;
 using ATBS.ConsoleUI.Screens;
 using Spectre.Console;
