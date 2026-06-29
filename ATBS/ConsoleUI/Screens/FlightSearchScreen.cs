@@ -12,12 +12,12 @@ public sealed class FlightSearchScreen(IFlightService flightService)
     /// <summary>
     /// Runs the passenger flight search workflow.
     /// </summary>
-    public void Run()
+    public async Task RunAsync()
     {
         AppHeader.Render("Search flights");
         
         var criteria = FlightSearchPrompt.Ask();
-        var flights = flightService.SearchAvailableFlights(criteria);
+        var flights = await flightService.SearchAvailableFlightsAsync(criteria);
 
         AppHeader.Render("Search flights", $"{flights.Count} result(s)");
         FlightTableRenderer.Render(flights);

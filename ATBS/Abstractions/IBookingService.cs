@@ -8,8 +8,8 @@ namespace ATBS.Abstractions;
 /// </summary>
 public interface IBookingService
 {
-    Booking BookFlight(CreateBookingRequest request);
-    void CancelBooking(Guid passengerId, Guid bookingId);
-    Booking ModifyBooking(ModifyBookingRequest request);
-    IReadOnlyList<Booking> GetPassengerBookings(Guid passengerId);
+    Task<Booking> BookFlightAsync(CreateBookingRequest request);
+    Task CancelBookingAsync(Guid passengerId, Guid bookingId);
+    Task<Booking> ModifyBookingAsync(ModifyBookingRequest request);
+    Task<IReadOnlyList<Booking>> GetPassengerBookingsAsync(Guid passengerId);
 }

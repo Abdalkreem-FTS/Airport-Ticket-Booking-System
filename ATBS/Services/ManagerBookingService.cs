@@ -10,9 +10,9 @@ namespace ATBS.Services;
 public sealed class ManagerBookingService(IBookingRepository bookingRepository, IFlightRepository flightRepository)
     : IManagerBookingService
 {
-    public IReadOnlyList<Booking> FilterBookings(BookingSearchCriteria criteria)
+    public async Task<IReadOnlyList<Booking>> FilterBookingsAsync(BookingSearchCriteria criteria)
     {
-        var bookings = bookingRepository.GetAll().AsEnumerable();
+        var bookings = (await bookingRepository.GetAllAsync()).AsEnumerable();
 
         if (criteria.FlightId is not null)
         {
@@ -41,7 +41,7 @@ public sealed class ManagerBookingService(IBookingRepository bookingRepository, 
         }
 
 
-        var flightsById = flightRepository.GetAll().ToDictionary(flight => flight.Id);
+        var flightsById = (await flightRepository.GetAllAsync()).ToDictionary(flight => flight.Id);
         bookings = bookings.Where(booking => flightsById.TryGetValue(booking.FlightId, out var flight) && MatchesFlightFilters(flight, criteria));
 
 

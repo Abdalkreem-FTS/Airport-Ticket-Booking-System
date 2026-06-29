@@ -9,9 +9,9 @@ namespace ATBS.Services;
 /// </summary>
 public sealed class FlightService(IFlightRepository flightRepository) : IFlightService
 {
-    public IReadOnlyList<Flight> SearchAvailableFlights(FlightSearchCriteria criteria)
+    public async Task<IReadOnlyList<Flight>> SearchAvailableFlightsAsync(FlightSearchCriteria criteria)
     {
-        var flights = flightRepository.GetAll().Where(flight => flight.DepartureDate >= DateTimeOffset.UtcNow);
+        var flights = (await flightRepository.GetAllAsync()).Where(flight => flight.DepartureDate >= DateTimeOffset.UtcNow);
 
         if (!string.IsNullOrWhiteSpace(criteria.DepartureCountry))
         {
@@ -51,7 +51,7 @@ public sealed class FlightService(IFlightRepository flightRepository) : IFlightS
         return flights.OrderBy(flight => flight.DepartureDate).ToList();
     }
 
-    public Flight? GetFlightById(Guid id) => flightRepository.GetById(id);
+    public async Task<Flight?> GetFlightByIdAsync(Guid id) => await flightRepository.GetByIdAsync(id);
 
     private static bool TextEquals(string currentValue, string requestedValue) =>
         string.Equals(currentValue.Trim(), requestedValue.Trim(), StringComparison.OrdinalIgnoreCase);

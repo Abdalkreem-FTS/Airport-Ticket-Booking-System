@@ -13,11 +13,11 @@ public sealed class JsonFileStorage : IFileStorage
         WriteIndented = true
     };
 
-    public IReadOnlyList<T> Load<T>(string path)
+    public async Task<IEnumerable<T>> LoadAsync<T>(string path)
     {
-        EnsureFile(path);
+        await EnsureFileAsync(path);
 
-        var json = File.ReadAllText(path);
+        var json = await File.ReadAllTextAsync(path);
         
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -27,16 +27,16 @@ public sealed class JsonFileStorage : IFileStorage
         return JsonSerializer.Deserialize<List<T>>(json, SerializerOptions) ?? [];
     }
 
-    public void Save<T>(string path, IReadOnlyCollection<T> items)
+    public async Task SaveAsync<T>(string path, IReadOnlyCollection<T> items)
     {
-        EnsureFile(path);
+        await EnsureFileAsync(path);
         
         var json = JsonSerializer.Serialize(items, SerializerOptions);
         
-        File.WriteAllText(path, json);
+        await File.WriteAllTextAsync(path, json);
     }
 
-    private static void EnsureFile(string path)
+    private static async Task EnsureFileAsync(string path)
     {
         var directory = Path.GetDirectoryName(path);
         
@@ -47,7 +47,7 @@ public sealed class JsonFileStorage : IFileStorage
 
         if (!File.Exists(path))
         {
-            File.WriteAllText(path, "[]");
+            await File.WriteAllTextAsync(path, "[]");
         }
     }
 }

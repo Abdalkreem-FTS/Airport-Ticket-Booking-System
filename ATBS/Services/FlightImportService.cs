@@ -13,7 +13,7 @@ namespace ATBS.Services;
 public sealed class FlightImportService(IFlightRepository flightRepository, IValidator<Flight> flightValidator)
     : IFlightImportService
 {
-    public ImportResult PreviewImport(string csvPath)
+    public async Task<ImportResult> PreviewImportAsync(string csvPath)
     {
         if (!File.Exists(csvPath))
         {
@@ -31,7 +31,7 @@ public sealed class FlightImportService(IFlightRepository flightRepository, IVal
             };
         }
 
-        var rows = ReadRows(csvPath);
+        var rows = await ReadRowsAsync(csvPath);
         var validFlights = new List<Flight>();
         var errors = new List<ValidationError>();
 
@@ -63,20 +63,20 @@ public sealed class FlightImportService(IFlightRepository flightRepository, IVal
         };
     }
 
-    public ImportResult Import(string csvPath)
+    public async Task<ImportResult> ImportAsync(string csvPath)
     {
-        var result = PreviewImport(csvPath);
+        var result = await PreviewImportAsync(csvPath);
         if (result.ValidFlights.Count > 0)
         {
-            flightRepository.AddRange(result.ValidFlights);
+            await flightRepository.AddRangeAsync(result.ValidFlights);
         }
 
         return result;
     }
 
-    private static List<ImportFlightRow> ReadRows(string csvPath)
+    private static async Task<List<ImportFlightRow>> ReadRowsAsync(string csvPath)
     {
-        var lines = File.ReadAllLines(csvPath)
+        var lines = (await File.ReadAllLinesAsync(csvPath))
             .Where(line => !string.IsNullOrWhiteSpace(line))
             .ToList();
 

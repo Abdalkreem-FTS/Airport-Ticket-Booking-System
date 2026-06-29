@@ -5,24 +5,24 @@ namespace ATBS.Storage.Repositories;
 
 public sealed class BookingRepository(IFileStorage storage, FilePaths filePaths) : IBookingRepository
 {
-    public IReadOnlyList<Booking> GetAll() => storage.Load<Booking>(filePaths.BookingsPath);
+    public async Task<IEnumerable<Booking>> GetAllAsync() => await storage.LoadAsync<Booking>(filePaths.BookingsPath);
 
-    public Booking? GetById(Guid id) => GetAll().FirstOrDefault(booking => booking.Id == id);
+    public async Task<Booking?> GetByIdAsync(Guid id) => (await GetAllAsync()).FirstOrDefault(booking => booking.Id == id);
 
-    public IReadOnlyList<Booking> GetByPassengerId(Guid passengerId) => GetAll().Where(booking => booking.PassengerId == passengerId).ToList();
+    public async Task<IEnumerable<Booking>> GetByPassengerIdAsync(Guid passengerId) => (await GetAllAsync()).Where(booking => booking.PassengerId == passengerId).ToList();
 
-    public void Add(Booking booking)
+    public async Task AddAsync(Booking booking)
     {
-        var bookings = GetAll().ToList();
+        var bookings = (await GetAllAsync()).ToList();
         
         bookings.Add(booking);
         
-        storage.Save(filePaths.BookingsPath, bookings);
+        await storage.SaveAsync(filePaths.BookingsPath, bookings);
     }
 
-    public void Update(Booking booking)
+    public async Task UpdateAsync(Booking booking)
     {
-        var bookings = GetAll().ToList();
+        var bookings = (await GetAllAsync()).ToList();
         var index = bookings.FindIndex(savedBooking => savedBooking.Id == booking.Id);
         
         if (index < 0)
@@ -31,6 +31,7 @@ public sealed class BookingRepository(IFileStorage storage, FilePaths filePaths)
         }
 
         bookings[index] = booking;
-        storage.Save(filePaths.BookingsPath, bookings);
+        
+        await storage.SaveAsync(filePaths.BookingsPath, bookings);
     }
 }

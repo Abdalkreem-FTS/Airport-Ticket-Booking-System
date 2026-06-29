@@ -5,6 +5,6 @@ namespace ATBS.Abstractions;
 /// </summary>
 public interface IFileStorage
 {
-    IReadOnlyList<T> Load<T>(string path);
-    void Save<T>(string path, IReadOnlyCollection<T> items);
+    Task<IEnumerable<T>> LoadAsync<T>(string path);
+    Task SaveAsync<T>(string path, IReadOnlyCollection<T> items);
 }

@@ -6,7 +6,7 @@ var services = new ServiceCollection();
 services.AddAppServices(); // Registering of services
 
 using var serviceProvider = services.BuildServiceProvider();
-serviceProvider.SeedData();
+await serviceProvider.SeedDataAsync();
 
 var app = serviceProvider.GetRequiredService<ConsoleApp>();
-app.Run();
+await app.RunAsync();

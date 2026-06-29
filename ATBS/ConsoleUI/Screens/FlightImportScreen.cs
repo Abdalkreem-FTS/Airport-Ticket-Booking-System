@@ -13,7 +13,7 @@ public sealed class FlightImportScreen(IFlightImportService flightImportService)
     /// <summary>
     /// Runs the manager CSV import workflow.
     /// </summary>
-    public void Run()
+    public async Task RunAsync()
     {
         AppHeader.Render("Import flights from CSV");
         var path = PromptHelpers.OptionalText("CSV file path:");
@@ -22,9 +22,9 @@ public sealed class FlightImportScreen(IFlightImportService flightImportService)
             return;
         }
 
-        var preview = AnsiConsole.Status()
+        var preview = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
-            .Start("Reading CSV...", _ => flightImportService.PreviewImport(path));
+            .StartAsync("Reading CSV...", _ => flightImportService.PreviewImportAsync(path));
 
         AppHeader.Render("Import flights from CSV", "Preview result");
         RenderSummary(preview.TotalRows, preview.ValidRows, preview.FailedRows);
@@ -47,9 +47,9 @@ public sealed class FlightImportScreen(IFlightImportService flightImportService)
             return;
         }
 
-        var result = AnsiConsole.Status()
+        var result = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
-            .Start("Importing flights...", _ => flightImportService.Import(path));
+            .StartAsync("Importing flights...", _ => flightImportService.ImportAsync(path));
 
         AnsiConsole.MarkupLine($"[green]Imported {result.ValidRows} flight(s).[/]");
         PromptHelpers.Pause();

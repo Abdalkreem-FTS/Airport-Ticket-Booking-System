@@ -16,15 +16,15 @@ public sealed class ModifyBookingScreen(IBookingService bookingService, IFlightR
     /// <summary>
     /// Runs the booking modification workflow for the selected passenger.
     /// </summary>
-    public void Run(Passenger passenger)
+    public async Task RunAsync(Passenger passenger)
     {
         AppHeader.Render("Modify booking", $"{passenger.FirstName} {passenger.LastName}");
 
-        var bookings = bookingService.GetPassengerBookings(passenger.Id)
+        var bookings = (await bookingService.GetPassengerBookingsAsync(passenger.Id))
             .Where(booking => booking.Status == BookingStatus.Confirmed)
             .ToList();
 
-        BookingTableRenderer.Render(bookings, flightRepository);
+        await BookingTableRenderer.RenderAsync(bookings, flightRepository);
         if (bookings.Count == 0)
         {
             PromptHelpers.Pause();
@@ -33,7 +33,7 @@ public sealed class ModifyBookingScreen(IBookingService bookingService, IFlightR
         }
 
         var booking = SelectBooking(bookings);
-        var flight = flightRepository.GetById(booking.FlightId);
+        var flight = await flightRepository.GetByIdAsync(booking.FlightId);
         if (flight is null)
         {
             AnsiConsole.MarkupLine("[red]The flight for this booking was not found.[/]");
@@ -58,7 +58,7 @@ public sealed class ModifyBookingScreen(IBookingService bookingService, IFlightR
 
         try
         {
-            var modified = bookingService.ModifyBooking(new ModifyBookingRequest
+            var modified = await bookingService.ModifyBookingAsync(new ModifyBookingRequest
             {
                 PassengerId = passenger.Id,
                 BookingId = booking.Id,

@@ -19,10 +19,10 @@ public sealed class PassengerMenuScreen(
     /// <summary>
     /// Runs the passenger menu after selecting a passenger profile.
     /// </summary>
-    public void Run()
+    public async Task RunAsync()
     {
         AppHeader.Render("Passenger workspace", "Select a passenger profile for this test session.");
-        var passenger = PassengerSelectionPrompt.Ask(passengerRepository.GetAll());
+        var passenger = PassengerSelectionPrompt.Ask(await passengerRepository.GetAllAsync());
         if (passenger is null)
         {
             EmptyStateRenderer.Render("No passengers exist yet.");
@@ -51,19 +51,19 @@ public sealed class PassengerMenuScreen(
             switch (action)
             {
                 case "Search flights":
-                    flightSearchScreen.Run();
+                    await flightSearchScreen.RunAsync();
                     break;
                 case "Book a flight":
-                    bookFlightScreen.Run(passenger);
+                    await bookFlightScreen.RunAsync(passenger);
                     break;
                 case "My bookings":
-                    passengerBookingsScreen.Run(passenger);
+                    await passengerBookingsScreen.RunAsync(passenger);
                     break;
                 case "Modify booking":
-                    modifyBookingScreen.Run(passenger);
+                    await modifyBookingScreen.RunAsync(passenger);
                     break;
                 case "Cancel booking":
-                    cancelBookingScreen.Run(passenger);
+                    await cancelBookingScreen.RunAsync(passenger);
                     break;
                 case "Back":
                     return;

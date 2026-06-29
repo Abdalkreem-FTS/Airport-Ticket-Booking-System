@@ -15,15 +15,15 @@ public sealed class CancelBookingScreen(IBookingService bookingService, IFlightR
     /// <summary>
     /// Runs the booking cancellation workflow for the selected passenger.
     /// </summary>
-    public void Run(Passenger passenger)
+    public async Task RunAsync(Passenger passenger)
     {
         AppHeader.Render("Cancel booking", $"{passenger.FirstName} {passenger.LastName}");
 
-        var bookings = bookingService.GetPassengerBookings(passenger.Id)
+        var bookings = (await bookingService.GetPassengerBookingsAsync(passenger.Id))
             .Where(booking => booking.Status == BookingStatus.Confirmed)
             .ToList();
 
-        BookingTableRenderer.Render(bookings, flightRepository);
+        await BookingTableRenderer.RenderAsync(bookings, flightRepository);
         if (bookings.Count == 0)
         {
             PromptHelpers.Pause();
@@ -40,7 +40,7 @@ public sealed class CancelBookingScreen(IBookingService bookingService, IFlightR
 
         try
         {
-            bookingService.CancelBooking(passenger.Id, booking.Id);
+            await bookingService.CancelBookingAsync(passenger.Id, booking.Id);
             AnsiConsole.MarkupLine("[green]Booking cancelled.[/]");
         }
         catch (InvalidOperationException exception)

@@ -7,5 +7,5 @@ namespace ATBS.Abstractions;
 /// </summary>
 public interface IValidator<in T>
 {
-    IReadOnlyList<ValidationError> Validate(T model);
+    IEnumerable<ValidationError> Validate(T model);
 }

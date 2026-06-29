@@ -15,15 +15,15 @@ public sealed class ManagerBookingFilterScreen(
     /// <summary>
     /// Runs the manager booking search workflow.
     /// </summary>
-    public void Run()
+    public async Task RunAsync()
     {
         AppHeader.Render("Filter bookings");
         
         var criteria = BookingSearchPrompt.Ask();
-        var bookings = managerBookingService.FilterBookings(criteria);
+        var bookings = await managerBookingService.FilterBookingsAsync(criteria);
 
         AppHeader.Render("Filter bookings", $"{bookings.Count} result(s)");
-        BookingTableRenderer.Render(bookings, flightRepository, passengerRepository);
+        await BookingTableRenderer.RenderAsync(bookings, flightRepository, passengerRepository);
         
         PromptHelpers.Pause();
     }

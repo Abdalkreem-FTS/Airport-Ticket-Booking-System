@@ -7,6 +7,6 @@ namespace ATBS.Abstractions;
 /// </summary>
 public interface IFlightImportService
 {
-    ImportResult PreviewImport(string csvPath);
-    ImportResult Import(string csvPath);
+    Task<ImportResult> PreviewImportAsync(string csvPath);
+    Task<ImportResult> ImportAsync(string csvPath);
 }

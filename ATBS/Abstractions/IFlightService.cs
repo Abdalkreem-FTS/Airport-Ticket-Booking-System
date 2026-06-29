@@ -8,6 +8,6 @@ namespace ATBS.Abstractions;
 /// </summary>
 public interface IFlightService
 {
-    IReadOnlyList<Flight> SearchAvailableFlights(FlightSearchCriteria criteria);
-    Flight? GetFlightById(Guid id);
+    Task<IReadOnlyList<Flight>> SearchAvailableFlightsAsync(FlightSearchCriteria criteria);
+    Task<Flight?> GetFlightByIdAsync(Guid id);
 }

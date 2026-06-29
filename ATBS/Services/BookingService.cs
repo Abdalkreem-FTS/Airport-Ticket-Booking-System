@@ -14,12 +14,12 @@ public sealed class BookingService(
     IPassengerRepository passengerRepository)
     : IBookingService
 {
-    public Booking BookFlight(CreateBookingRequest request)
+    public async Task<Booking> BookFlightAsync(CreateBookingRequest request)
     {
-        _ = passengerRepository.GetById(request.PassengerId)
+        _ = await passengerRepository.GetByIdAsync(request.PassengerId)
             ?? throw new InvalidOperationException("Passenger was not found.");
 
-        var flight = flightRepository.GetById(request.FlightId)
+        var flight = await flightRepository.GetByIdAsync(request.FlightId)
             ?? throw new InvalidOperationException("Flight was not found.");
 
         var selectedClass = flight.ClassPrices.FirstOrDefault(price => price.Class == request.Class)
@@ -31,7 +31,7 @@ public sealed class BookingService(
         }
 
         selectedClass.AvailableSeats--;
-        flightRepository.Update(flight);
+        await flightRepository.UpdateAsync(flight);
 
         var booking = new Booking
         {
@@ -41,42 +41,42 @@ public sealed class BookingService(
             Price = selectedClass.Price
         };
 
-        bookingRepository.Add(booking);
+        await bookingRepository.AddAsync(booking);
         
         return booking;
     }
 
-    public void CancelBooking(Guid passengerId, Guid bookingId)
+    public async Task CancelBookingAsync(Guid passengerId, Guid bookingId)
     {
-        var booking = GetOwnedBooking(passengerId, bookingId);
+        var booking = await GetOwnedBookingAsync(passengerId, bookingId);
         if (booking.Status == BookingStatus.Cancelled)
         {
             return;
         }
 
-        var flight = flightRepository.GetById(booking.FlightId)
+        var flight = await flightRepository.GetByIdAsync(booking.FlightId)
             ?? throw new InvalidOperationException("Flight was not found.");
 
         var selectedClass = flight.ClassPrices.FirstOrDefault(price => price.Class == booking.Class)
             ?? throw new InvalidOperationException("Booking class was not found on the flight.");
 
         selectedClass.AvailableSeats++;
-        flightRepository.Update(flight);
+        await flightRepository.UpdateAsync(flight);
 
         booking.Status = BookingStatus.Cancelled;
         booking.LastModifiedAt = DateTimeOffset.UtcNow;
-        bookingRepository.Update(booking);
+        await bookingRepository.UpdateAsync(booking);
     }
 
-    public Booking ModifyBooking(ModifyBookingRequest request)
+    public async Task<Booking> ModifyBookingAsync(ModifyBookingRequest request)
     {
-        var booking = GetOwnedBooking(request.PassengerId, request.BookingId);
+        var booking = await GetOwnedBookingAsync(request.PassengerId, request.BookingId);
         if (booking.Status == BookingStatus.Cancelled)
         {
             throw new InvalidOperationException("Cancelled bookings cannot be modified.");
         }
 
-        var flight = flightRepository.GetById(booking.FlightId)
+        var flight = await flightRepository.GetByIdAsync(booking.FlightId)
             ?? throw new InvalidOperationException("Flight was not found.");
 
         var currentClass = flight.ClassPrices.First(price => price.Class == booking.Class);
@@ -95,24 +95,24 @@ public sealed class BookingService(
 
         currentClass.AvailableSeats++;
         newClass.AvailableSeats--;
-        flightRepository.Update(flight);
+        await flightRepository.UpdateAsync(flight);
 
         booking.Class = newClass.Class;
         booking.Price = newClass.Price;
         booking.LastModifiedAt = DateTimeOffset.UtcNow;
-        bookingRepository.Update(booking);
+        await bookingRepository.UpdateAsync(booking);
         
         return booking;
     }
 
-    public IReadOnlyList<Booking> GetPassengerBookings(Guid passengerId) =>
-        bookingRepository.GetByPassengerId(passengerId)
+    public async Task<IReadOnlyList<Booking>> GetPassengerBookingsAsync(Guid passengerId) =>
+        (await bookingRepository.GetByPassengerIdAsync(passengerId))
             .OrderByDescending(booking => booking.BookedAt)
             .ToList();
 
-    private Booking GetOwnedBooking(Guid passengerId, Guid bookingId)
+    private async Task<Booking> GetOwnedBookingAsync(Guid passengerId, Guid bookingId)
     {
-        var booking = bookingRepository.GetById(bookingId)
+        var booking = await bookingRepository.GetByIdAsync(bookingId)
             ?? throw new InvalidOperationException("Booking was not found.");
 
         return booking.PassengerId != passengerId ? throw new InvalidOperationException("Booking does not belong to this passenger.") : booking;

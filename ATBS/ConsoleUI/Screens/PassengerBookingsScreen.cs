@@ -13,12 +13,12 @@ public sealed class PassengerBookingsScreen(IBookingService bookingService, IFli
     /// <summary>
     /// Shows the passenger booking history.
     /// </summary>
-    public void Run(Passenger passenger)
+    public async Task RunAsync(Passenger passenger)
     {
         AppHeader.Render("My bookings", $"{passenger.FirstName} {passenger.LastName}");
         
-        var bookings = bookingService.GetPassengerBookings(passenger.Id);
-        BookingTableRenderer.Render(bookings, flightRepository);
+        var bookings = await bookingService.GetPassengerBookingsAsync(passenger.Id);
+        await BookingTableRenderer.RenderAsync(bookings, flightRepository);
         
         PromptHelpers.Pause();
     }

@@ -46,27 +46,27 @@ public static class AppServiceRegistration
         return services;
     }
 
-    public static IServiceProvider SeedData(this IServiceProvider serviceProvider)
+    public static async Task<IServiceProvider> SeedDataAsync(this IServiceProvider serviceProvider)
     {
         var fileStorage = serviceProvider.GetRequiredService<IFileStorage>();
         var filePaths = serviceProvider.GetRequiredService<FilePaths>();
         var flightRepository = serviceProvider.GetRequiredService<IFlightRepository>();
         var passengerRepository = serviceProvider.GetRequiredService<IPassengerRepository>();
 
-        if (passengerRepository.GetAll().Count == 0)
+        if (!(await passengerRepository.GetAllAsync()).Any())
         {
-            foreach (var passenger in fileStorage.Load<Passenger>(Path.Combine(filePaths.SeedDirectory, "passengers.json")))
+            foreach (var passenger in await fileStorage.LoadAsync<Passenger>(Path.Combine(filePaths.SeedDirectory, "passengers.json")))
             {
-                passengerRepository.Add(passenger);
+                await passengerRepository.AddAsync(passenger);
             }
         }
 
-        if (flightRepository.GetAll().Count > 0)
+        if ((await flightRepository.GetAllAsync()).Any())
         {
             return serviceProvider;
         }
 
-        flightRepository.AddRange(fileStorage.Load<Flight>(Path.Combine(filePaths.SeedDirectory, "flights.json")));
+        await flightRepository.AddRangeAsync(await fileStorage.LoadAsync<Flight>(Path.Combine(filePaths.SeedDirectory, "flights.json")));
 
         return serviceProvider;
     }

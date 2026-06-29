@@ -11,9 +11,11 @@ public static class PassengerSelectionPrompt
     /// <summary>
     /// Returns the selected passenger, or null when no passengers exist.
     /// </summary>
-    public static Passenger? Ask(IReadOnlyList<Passenger> passengers)
+    public static Passenger? Ask(IEnumerable<Passenger> list)
     {
-        if (passengers.Count == 0)
+        var passengers = list as Passenger[] ?? list.ToArray();
+        
+        if (passengers.Length == 0)
         {
             return null;
         }

@@ -12,7 +12,7 @@ public sealed class ConsoleApp(PassengerMenuScreen passengerMenuScreen, ManagerM
     /// <summary>
     /// Starts the main role selector and keeps the console app running until exit.
     /// </summary>
-    public void Run()
+    public async Task RunAsync()
     {
         while (true)
         {
@@ -26,10 +26,10 @@ public sealed class ConsoleApp(PassengerMenuScreen passengerMenuScreen, ManagerM
             switch (action)
             {
                 case "Passenger":
-                    passengerMenuScreen.Run();
+                    await passengerMenuScreen.RunAsync();
                     break;
                 case "Manager":
-                    managerMenuScreen.Run();
+                    await managerMenuScreen.RunAsync();
                     break;
                 case "Exit":
                     AnsiConsole.MarkupLine("[grey]Session closed.[/]");

@@ -13,7 +13,7 @@ public static class BookingTableRenderer
     /// <summary>
     /// Displays bookings in a Spectre.Console table.
     /// </summary>
-    public static void Render(
+    public static async Task RenderAsync(
         IReadOnlyList<Booking> bookings,
         IFlightRepository flightRepository,
         IPassengerRepository? passengerRepository = null)
@@ -38,8 +38,10 @@ public static class BookingTableRenderer
         for (var index = 0; index < bookings.Count; index++)
         {
             var booking = bookings[index];
-            var flight = flightRepository.GetById(booking.FlightId);
-            var passenger = passengerRepository?.GetById(booking.PassengerId);
+            var flight = await flightRepository.GetByIdAsync(booking.FlightId);
+            var passenger = passengerRepository is null
+                ? null
+                : await passengerRepository.GetByIdAsync(booking.PassengerId);
             var status = booking.Status == BookingStatus.Confirmed
                 ? "[green]Confirmed[/]"
                 : "[grey]Cancelled[/]";

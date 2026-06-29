@@ -5,31 +5,31 @@ namespace ATBS.Storage.Repositories;
 
 public sealed class FlightRepository(IFileStorage storage, FilePaths filePaths) : IFlightRepository
 {
-    public IReadOnlyList<Flight> GetAll() => storage.Load<Flight>(filePaths.FlightsPath);
+    public async Task<IEnumerable<Flight>> GetAllAsync() => await storage.LoadAsync<Flight>(filePaths.FlightsPath);
 
-    public Flight? GetById(Guid id) => GetAll().FirstOrDefault(flight => flight.Id == id);
+    public async Task<Flight?> GetByIdAsync(Guid id) => (await GetAllAsync()).FirstOrDefault(flight => flight.Id == id);
 
-    public void Add(Flight flight)
+    public async Task AddAsync(Flight flight)
     {
-        var flights = GetAll().ToList();
+        var flights = (await GetAllAsync()).ToList();
         
         flights.Add(flight);
         
-        storage.Save(filePaths.FlightsPath, flights);
+        await storage.SaveAsync(filePaths.FlightsPath, flights);
     }
 
-    public void AddRange(IEnumerable<Flight> flights)
+    public async Task AddRangeAsync(IEnumerable<Flight> flights)
     {
-        var savedFlights = GetAll().ToList();
+        var savedFlights = (await GetAllAsync()).ToList();
         
         savedFlights.AddRange(flights);
         
-        storage.Save(filePaths.FlightsPath, savedFlights);
+        await storage.SaveAsync(filePaths.FlightsPath, savedFlights);
     }
 
-    public void Update(Flight flight)
+    public async Task UpdateAsync(Flight flight)
     {
-        var flights = GetAll().ToList();
+        var flights = (await GetAllAsync()).ToList();
         var index = flights.FindIndex(savedFlight => savedFlight.Id == flight.Id);
         
         if (index < 0)
@@ -38,13 +38,13 @@ public sealed class FlightRepository(IFileStorage storage, FilePaths filePaths) 
         }
 
         flights[index] = flight;
-        storage.Save(filePaths.FlightsPath, flights);
+        await storage.SaveAsync(filePaths.FlightsPath, flights);
     }
 
-    public void Delete(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
-        var flights = GetAll().Where(flight => flight.Id != id).ToList();
+        var flights = (await GetAllAsync()).Where(flight => flight.Id != id).ToList();
         
-        storage.Save(filePaths.FlightsPath, flights);
+        await storage.SaveAsync(filePaths.FlightsPath, flights);
     }
 }

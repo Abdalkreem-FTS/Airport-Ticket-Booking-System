@@ -14,7 +14,7 @@ public sealed class ManagerMenuScreen(
     /// <summary>
     /// Runs the manager menu for booking filters, imports, and validation details.
     /// </summary>
-    public void Run()
+    public async Task RunAsync()
     {
         while (true)
         {
@@ -32,10 +32,10 @@ public sealed class ManagerMenuScreen(
             switch (action)
             {
                 case "Filter bookings":
-                    managerBookingFilterScreen.Run();
+                    await managerBookingFilterScreen.RunAsync();
                     break;
                 case "Import flights from CSV":
-                    flightImportScreen.Run();
+                    await flightImportScreen.RunAsync();
                     break;
                 case "View flight validation rules":
                     validationRulesScreen.Run();

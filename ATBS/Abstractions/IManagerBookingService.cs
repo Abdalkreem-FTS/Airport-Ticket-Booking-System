@@ -8,5 +8,5 @@ namespace ATBS.Abstractions;
 /// </summary>
 public interface IManagerBookingService
 {
-    IReadOnlyList<Booking> FilterBookings(BookingSearchCriteria criteria);
+    Task<IReadOnlyList<Booking>> FilterBookingsAsync(BookingSearchCriteria criteria);
 }

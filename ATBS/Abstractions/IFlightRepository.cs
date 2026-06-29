@@ -4,10 +4,9 @@ namespace ATBS.Abstractions;
 
 public interface IFlightRepository
 {
-    IReadOnlyList<Flight> GetAll();
-    Flight? GetById(Guid id);
-    void Add(Flight flight);
-    void AddRange(IEnumerable<Flight> flights);
-    void Update(Flight flight);
-    void Delete(Guid id);
+    Task<IEnumerable<Flight>> GetAllAsync();
+    Task<Flight?> GetByIdAsync(Guid id);
+    Task AddAsync(Flight flight);
+    Task AddRangeAsync(IEnumerable<Flight> flights);
+    Task UpdateAsync(Flight flight);
 }

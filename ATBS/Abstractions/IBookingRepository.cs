@@ -4,9 +4,9 @@ namespace ATBS.Abstractions;
 
 public interface IBookingRepository
 {
-    IReadOnlyList<Booking> GetAll();
-    Booking? GetById(Guid id);
-    IReadOnlyList<Booking> GetByPassengerId(Guid passengerId);
-    void Add(Booking booking);
-    void Update(Booking booking);
+    Task<IEnumerable<Booking>> GetAllAsync();
+    Task<Booking?> GetByIdAsync(Guid id);
+    Task<IEnumerable<Booking>> GetByPassengerIdAsync(Guid passengerId);
+    Task AddAsync(Booking booking);
+    Task UpdateAsync(Booking booking);
 }

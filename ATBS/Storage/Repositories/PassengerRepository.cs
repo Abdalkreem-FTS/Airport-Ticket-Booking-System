@@ -5,20 +5,20 @@ namespace ATBS.Storage.Repositories;
 
 public sealed class PassengerRepository(IFileStorage storage, FilePaths filePaths) : IPassengerRepository
 {
-    public IReadOnlyList<Passenger> GetAll() => storage.Load<Passenger>(filePaths.PassengersPath);
+    public async Task<IEnumerable<Passenger>> GetAllAsync() => await storage.LoadAsync<Passenger>(filePaths.PassengersPath);
 
-    public Passenger? GetById(Guid id) => GetAll().FirstOrDefault(passenger => passenger.Id == id);
+    public async Task<Passenger?> GetByIdAsync(Guid id) => (await GetAllAsync()).FirstOrDefault(passenger => passenger.Id == id);
 
-    public void Add(Passenger passenger)
+    public async Task AddAsync(Passenger passenger)
     {
-        var passengers = GetAll().ToList();
+        var passengers = (await GetAllAsync()).ToList();
         passengers.Add(passenger);
-        storage.Save(filePaths.PassengersPath, passengers);
+        await storage.SaveAsync(filePaths.PassengersPath, passengers);
     }
 
-    public void Update(Passenger passenger)
+    public async Task UpdateAsync(Passenger passenger)
     {
-        var passengers = GetAll().ToList();
+        var passengers = (await GetAllAsync()).ToList();
         var index = passengers.FindIndex(savedPassenger => savedPassenger.Id == passenger.Id);
         
         if (index < 0)
@@ -27,6 +27,6 @@ public sealed class PassengerRepository(IFileStorage storage, FilePaths filePath
         }
 
         passengers[index] = passenger;
-        storage.Save(filePaths.PassengersPath, passengers);
+        await storage.SaveAsync(filePaths.PassengersPath, passengers);
     }
 }

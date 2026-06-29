@@ -9,7 +9,7 @@ namespace ATBS.Validation;
 /// </summary>
 public sealed class FlightValidator : IValidator<Flight>
 {
-    public IReadOnlyList<ValidationError> Validate(Flight flight)
+    public IEnumerable<ValidationError> Validate(Flight flight)
     {
         var errors = new List<ValidationError>();
 

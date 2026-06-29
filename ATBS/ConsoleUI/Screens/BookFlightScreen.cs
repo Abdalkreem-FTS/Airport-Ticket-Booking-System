@@ -16,11 +16,11 @@ public sealed class BookFlightScreen(IFlightService flightService, IBookingServi
     /// <summary>
     /// Runs the complete passenger booking workflow.
     /// </summary>
-    public void Run(Passenger passenger)
+    public async Task RunAsync(Passenger passenger)
     {
         AppHeader.Render("Book a flight", "Search first, then select a flight and class.");
         var criteria = FlightSearchPrompt.Ask();
-        var flights = flightService.SearchAvailableFlights(criteria);
+        var flights = await flightService.SearchAvailableFlightsAsync(criteria);
 
         AppHeader.Render("Book a flight", $"{flights.Count} available flight(s)");
         FlightTableRenderer.Render(flights);
@@ -43,7 +43,7 @@ public sealed class BookFlightScreen(IFlightService flightService, IBookingServi
         }
 
         var classPrice = flight.ClassPrices.First(price => price.Class == selectedClass.Value);
-        var confirmed = AnsiConsole.Confirm(
+        var confirmed = await AnsiConsole.ConfirmAsync(
             $"Confirm booking [cyan]{Markup.Escape(flight.FlightNumber)}[/] in [cyan]{selectedClass.Value}[/] for [green]${classPrice.Price:F2}[/]?");
 
         if (!confirmed)
@@ -53,7 +53,7 @@ public sealed class BookFlightScreen(IFlightService flightService, IBookingServi
 
         try
         {
-            var booking = bookingService.BookFlight(new CreateBookingRequest
+            var booking = await bookingService.BookFlightAsync(new CreateBookingRequest
             {
                 PassengerId = passenger.Id,
                 FlightId = flight.Id,
