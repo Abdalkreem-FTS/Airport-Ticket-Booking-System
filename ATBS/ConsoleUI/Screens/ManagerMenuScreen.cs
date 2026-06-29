@@ -6,12 +6,15 @@ namespace ATBS.ConsoleUI.Screens;
 /// <summary>
 /// Shows the manager workspace and routes manager actions to their screens.
 /// </summary>
-public static class ManagerMenuScreen
+public sealed class ManagerMenuScreen(
+    ManagerBookingFilterScreen managerBookingFilterScreen,
+    FlightImportScreen flightImportScreen,
+    ValidationRulesScreen validationRulesScreen)
 {
     /// <summary>
     /// Runs the manager menu for booking filters, imports, and validation details.
     /// </summary>
-    public static void Run(AppServices services)
+    public void Run()
     {
         while (true)
         {
@@ -29,13 +32,13 @@ public static class ManagerMenuScreen
             switch (action)
             {
                 case "Filter bookings":
-                    ManagerBookingFilterScreen.Run(services);
+                    managerBookingFilterScreen.Run();
                     break;
                 case "Import flights from CSV":
-                    FlightImportScreen.Run(services);
+                    flightImportScreen.Run();
                     break;
                 case "View flight validation rules":
-                    ValidationRulesScreen.Run(services);
+                    validationRulesScreen.Run();
                     break;
                 case "Back":
                     return;

@@ -1,3 +1,4 @@
+using ATBS.Abstractions;
 using ATBS.ConsoleUI.Prompts;
 using ATBS.ConsoleUI.Rendering;
 using Spectre.Console;
@@ -7,12 +8,12 @@ namespace ATBS.ConsoleUI.Screens;
 /// <summary>
 /// Previews CSV flight imports, shows validation errors, and saves valid rows.
 /// </summary>
-public static class FlightImportScreen
+public sealed class FlightImportScreen(IFlightImportService flightImportService)
 {
     /// <summary>
     /// Runs the manager CSV import workflow.
     /// </summary>
-    public static void Run(AppServices services)
+    public void Run()
     {
         AppHeader.Render("Import flights from CSV");
         var path = PromptHelpers.OptionalText("CSV file path:");
@@ -23,7 +24,7 @@ public static class FlightImportScreen
 
         var preview = AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
-            .Start("Reading CSV...", _ => services.FlightImportService.PreviewImport(path));
+            .Start("Reading CSV...", _ => flightImportService.PreviewImport(path));
 
         AppHeader.Render("Import flights from CSV", "Preview result");
         RenderSummary(preview.TotalRows, preview.ValidRows, preview.FailedRows);
@@ -48,7 +49,7 @@ public static class FlightImportScreen
 
         var result = AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
-            .Start("Importing flights...", _ => services.FlightImportService.Import(path));
+            .Start("Importing flights...", _ => flightImportService.Import(path));
 
         AnsiConsole.MarkupLine($"[green]Imported {result.ValidRows} flight(s).[/]");
         PromptHelpers.Pause();

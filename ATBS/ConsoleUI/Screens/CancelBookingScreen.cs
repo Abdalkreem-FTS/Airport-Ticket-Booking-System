@@ -1,3 +1,4 @@
+using ATBS.Abstractions;
 using ATBS.ConsoleUI.Prompts;
 using ATBS.ConsoleUI.Rendering;
 using ATBS.Models;
@@ -9,20 +10,20 @@ namespace ATBS.ConsoleUI.Screens;
 /// <summary>
 /// Lets a passenger cancel one of their active bookings.
 /// </summary>
-public static class CancelBookingScreen
+public sealed class CancelBookingScreen(IBookingService bookingService, IFlightRepository flightRepository)
 {
     /// <summary>
     /// Runs the booking cancellation workflow for the selected passenger.
     /// </summary>
-    public static void Run(AppServices services, Passenger passenger)
+    public void Run(Passenger passenger)
     {
         AppHeader.Render("Cancel booking", $"{passenger.FirstName} {passenger.LastName}");
 
-        var bookings = services.BookingService.GetPassengerBookings(passenger.Id)
+        var bookings = bookingService.GetPassengerBookings(passenger.Id)
             .Where(booking => booking.Status == BookingStatus.Confirmed)
             .ToList();
 
-        BookingTableRenderer.Render(bookings, services.FlightRepository);
+        BookingTableRenderer.Render(bookings, flightRepository);
         if (bookings.Count == 0)
         {
             PromptHelpers.Pause();
@@ -39,7 +40,7 @@ public static class CancelBookingScreen
 
         try
         {
-            services.BookingService.CancelBooking(passenger.Id, booking.Id);
+            bookingService.CancelBooking(passenger.Id, booking.Id);
             AnsiConsole.MarkupLine("[green]Booking cancelled.[/]");
         }
         catch (InvalidOperationException exception)

@@ -1,5 +1,6 @@
 using ATBS.ConsoleUI.Prompts;
 using ATBS.ConsoleUI.Rendering;
+using ATBS.Abstractions;
 using Spectre.Console;
 
 namespace ATBS.ConsoleUI.Screens;
@@ -7,15 +8,21 @@ namespace ATBS.ConsoleUI.Screens;
 /// <summary>
 /// Shows the passenger workspace and routes passenger actions to their screens.
 /// </summary>
-public static class PassengerMenuScreen
+public sealed class PassengerMenuScreen(
+    IPassengerRepository passengerRepository,
+    FlightSearchScreen flightSearchScreen,
+    BookFlightScreen bookFlightScreen,
+    PassengerBookingsScreen passengerBookingsScreen,
+    ModifyBookingScreen modifyBookingScreen,
+    CancelBookingScreen cancelBookingScreen)
 {
     /// <summary>
     /// Runs the passenger menu after selecting a passenger profile.
     /// </summary>
-    public static void Run(AppServices services)
+    public void Run()
     {
         AppHeader.Render("Passenger workspace", "Select a passenger profile for this test session.");
-        var passenger = PassengerSelectionPrompt.Ask(services.PassengerRepository.GetAll());
+        var passenger = PassengerSelectionPrompt.Ask(passengerRepository.GetAll());
         if (passenger is null)
         {
             EmptyStateRenderer.Render("No passengers exist yet.");
@@ -44,19 +51,19 @@ public static class PassengerMenuScreen
             switch (action)
             {
                 case "Search flights":
-                    FlightSearchScreen.Run(services);
+                    flightSearchScreen.Run();
                     break;
                 case "Book a flight":
-                    BookFlightScreen.Run(services, passenger);
+                    bookFlightScreen.Run(passenger);
                     break;
                 case "My bookings":
-                    PassengerBookingsScreen.Run(services, passenger);
+                    passengerBookingsScreen.Run(passenger);
                     break;
                 case "Modify booking":
-                    ModifyBookingScreen.Run(services, passenger);
+                    modifyBookingScreen.Run(passenger);
                     break;
                 case "Cancel booking":
-                    CancelBookingScreen.Run(services, passenger);
+                    cancelBookingScreen.Run(passenger);
                     break;
                 case "Back":
                     return;

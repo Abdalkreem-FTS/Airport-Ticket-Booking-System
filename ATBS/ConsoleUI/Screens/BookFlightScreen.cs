@@ -1,3 +1,4 @@
+using ATBS.Abstractions;
 using ATBS.ConsoleUI.Prompts;
 using ATBS.ConsoleUI.Rendering;
 using ATBS.DTOs;
@@ -10,16 +11,16 @@ namespace ATBS.ConsoleUI.Screens;
 /// <summary>
 /// Guides a passenger through searching, selecting, and confirming a flight booking.
 /// </summary>
-public static class BookFlightScreen
+public sealed class BookFlightScreen(IFlightService flightService, IBookingService bookingService)
 {
     /// <summary>
     /// Runs the complete passenger booking workflow.
     /// </summary>
-    public static void Run(AppServices services, Passenger passenger)
+    public void Run(Passenger passenger)
     {
         AppHeader.Render("Book a flight", "Search first, then select a flight and class.");
         var criteria = FlightSearchPrompt.Ask();
-        var flights = services.FlightService.SearchAvailableFlights(criteria);
+        var flights = flightService.SearchAvailableFlights(criteria);
 
         AppHeader.Render("Book a flight", $"{flights.Count} available flight(s)");
         FlightTableRenderer.Render(flights);
@@ -52,7 +53,7 @@ public static class BookFlightScreen
 
         try
         {
-            var booking = services.BookingService.BookFlight(new CreateBookingRequest
+            var booking = bookingService.BookFlight(new CreateBookingRequest
             {
                 PassengerId = passenger.Id,
                 FlightId = flight.Id,

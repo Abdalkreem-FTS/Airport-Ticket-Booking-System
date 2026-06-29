@@ -1,8 +1,12 @@
 using ATBS;
 using ATBS.ConsoleUI;
+using Microsoft.Extensions.DependencyInjection;
 
-var services = AppServices.Create();
+var services = new ServiceCollection();
+services.AddAppServices(); // Registering of services
 
-var app = new ConsoleApp(services);
+using var serviceProvider = services.BuildServiceProvider();
+serviceProvider.SeedData();
 
+var app = serviceProvider.GetRequiredService<ConsoleApp>();
 app.Run();

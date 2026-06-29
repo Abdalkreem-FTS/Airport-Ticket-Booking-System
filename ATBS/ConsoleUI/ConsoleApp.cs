@@ -7,7 +7,7 @@ namespace ATBS.ConsoleUI;
 /// <summary>
 /// Runs the interactive Spectre.Console application and routes users to role workspaces.
 /// </summary>
-public sealed class ConsoleApp(AppServices services)
+public sealed class ConsoleApp(PassengerMenuScreen passengerMenuScreen, ManagerMenuScreen managerMenuScreen)
 {
     /// <summary>
     /// Starts the main role selector and keeps the console app running until exit.
@@ -26,10 +26,10 @@ public sealed class ConsoleApp(AppServices services)
             switch (action)
             {
                 case "Passenger":
-                    PassengerMenuScreen.Run(services);
+                    passengerMenuScreen.Run();
                     break;
                 case "Manager":
-                    ManagerMenuScreen.Run(services);
+                    managerMenuScreen.Run();
                     break;
                 case "Exit":
                     AnsiConsole.MarkupLine("[grey]Session closed.[/]");

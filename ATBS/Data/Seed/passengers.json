@@ -1,0 +1,16 @@
+[
+  {
+    "Id": "14fb4fc0-6bb9-462c-969d-49956c705f01",
+    "FirstName": "Abdalkreem",
+    "LastName": "Bzoor",
+    "Email": "abdalkreem.bzoor@example.com",
+    "PhoneNumber": "",
+    "Address": "",
+    "City": "",
+    "State": "",
+    "ZipCode": "",
+    "Country": "Palestine",
+    "DateOfBirth": "2003-07-24T00:00:00",
+    "RegistrationDate": "2026-06-28T09:09:11.757415+00:00"
+  }
+]

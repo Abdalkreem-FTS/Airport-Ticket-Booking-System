@@ -1,3 +1,4 @@
+using ATBS.Abstractions;
 using ATBS.ConsoleUI.Prompts;
 using ATBS.ConsoleUI.Rendering;
 using ATBS.DTOs;
@@ -10,20 +11,20 @@ namespace ATBS.ConsoleUI.Screens;
 /// <summary>
 /// Lets a passenger change the class of an active booking.
 /// </summary>
-public static class ModifyBookingScreen
+public sealed class ModifyBookingScreen(IBookingService bookingService, IFlightRepository flightRepository)
 {
     /// <summary>
     /// Runs the booking modification workflow for the selected passenger.
     /// </summary>
-    public static void Run(AppServices services, Passenger passenger)
+    public void Run(Passenger passenger)
     {
         AppHeader.Render("Modify booking", $"{passenger.FirstName} {passenger.LastName}");
 
-        var bookings = services.BookingService.GetPassengerBookings(passenger.Id)
+        var bookings = bookingService.GetPassengerBookings(passenger.Id)
             .Where(booking => booking.Status == BookingStatus.Confirmed)
             .ToList();
 
-        BookingTableRenderer.Render(bookings, services.FlightRepository);
+        BookingTableRenderer.Render(bookings, flightRepository);
         if (bookings.Count == 0)
         {
             PromptHelpers.Pause();
@@ -32,7 +33,7 @@ public static class ModifyBookingScreen
         }
 
         var booking = SelectBooking(bookings);
-        var flight = services.FlightRepository.GetById(booking.FlightId);
+        var flight = flightRepository.GetById(booking.FlightId);
         if (flight is null)
         {
             AnsiConsole.MarkupLine("[red]The flight for this booking was not found.[/]");
@@ -57,7 +58,7 @@ public static class ModifyBookingScreen
 
         try
         {
-            var modified = services.BookingService.ModifyBooking(new ModifyBookingRequest
+            var modified = bookingService.ModifyBooking(new ModifyBookingRequest
             {
                 PassengerId = passenger.Id,
                 BookingId = booking.Id,
