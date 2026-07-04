@@ -1,4 +1,4 @@
-namespace ATBS.DTOs;
+﻿namespace ATBS.Console.DTOs;
 
 public sealed class ImportFlightRow
 {

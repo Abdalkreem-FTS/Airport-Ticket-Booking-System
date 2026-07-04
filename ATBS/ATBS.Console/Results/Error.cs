@@ -1,4 +1,4 @@
-﻿namespace ATBS.Results;
+﻿namespace ATBS.Console.Results;
 
 public readonly record struct Error
 {

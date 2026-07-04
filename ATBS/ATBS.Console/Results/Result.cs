@@ -1,10 +1,8 @@
-﻿using ATBS.Results.Abstractions;
-
-namespace ATBS.Results;
-
-
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Text.Json.Serialization;
+using ATBS.Console.Results.Abstractions;
+
+namespace ATBS.Console.Results;
 
 public static class Result
 {
@@ -26,18 +24,22 @@ public sealed class Result<TValue> : IResult<TValue>
     {
         if (isSuccess)
         {
-            _value = value ?? throw new ArgumentNullException(nameof(value));
-            _errors = [];
-            IsSuccess = true;
+            if (value is null)
+            {
+                _errors = [Error.Unexpected("Result.NullValue", "Cannot create a successful result with a null value.")];
+                _value = default!;
+                IsSuccess = false;
+            }
+            else
+            {
+                _value = value;
+                _errors = [];
+                IsSuccess = true;
+            }
         }
         else
         {
-            if (errors == null || errors.Count == 0)
-            {
-                throw new ArgumentException("Provide at least one error.", nameof(errors));
-            }
-
-            _errors = errors;
+            _errors = NormalizeErrors(errors);
             _value = default!;
             IsSuccess = false;
         }
@@ -50,15 +52,7 @@ public sealed class Result<TValue> : IResult<TValue>
 
     private Result(List<Error> errors)
     {
-        if (errors is null || errors.Count == 0)
-        {
-            throw new ArgumentException(
-                "Cannot create a Result<TValue> from an empty collection of errors. Provide at least one error.",
-                nameof(errors));
-        }
-
-        _errors = errors;
-
+        _errors = NormalizeErrors(errors);
         IsSuccess = false;
     }
 
@@ -66,7 +60,9 @@ public sealed class Result<TValue> : IResult<TValue>
     {
         if (value is null)
         {
-            throw new ArgumentNullException(nameof(value));
+            _errors = [Error.Unexpected("Result.NullValue", "Cannot create a successful result with a null value.")];
+            IsSuccess = false;
+            return;
         }
 
         _value = value;
@@ -105,6 +101,11 @@ public sealed class Result<TValue> : IResult<TValue>
     {
         return new Result<TValue>(errors);
     }
+
+    private static List<Error> NormalizeErrors(List<Error>? errors) =>
+        errors is { Count: > 0 }
+            ? errors
+            : [Error.Unexpected("Result.EmptyErrors", "A failed result must contain at least one error.")];
 }
 
 public readonly record struct Success;

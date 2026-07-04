@@ -1,6 +1,6 @@
-using ATBS.Models.Enums;
+﻿using ATBS.Console.Models.Enums;
 
-namespace ATBS.DTOs;
+namespace ATBS.Console.DTOs;
 
 public sealed class ModifyBookingRequest
 {

@@ -1,6 +1,6 @@
-using ATBS.Models;
+﻿using ATBS.Console.Models;
 
-namespace ATBS.DTOs;
+namespace ATBS.Console.DTOs;
 
 public sealed class ImportResult
 {

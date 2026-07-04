@@ -1,4 +1,4 @@
-﻿namespace ATBS.Results.Abstractions;
+﻿namespace ATBS.Console.Results.Abstractions;
 
 public interface IResult
 {
