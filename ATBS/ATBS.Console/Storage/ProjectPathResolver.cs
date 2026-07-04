@@ -1,14 +1,14 @@
-namespace ATBS.Storage;
+﻿namespace ATBS.Console.Storage;
 
 public static class ProjectPathResolver
 {
-    private const string ProjectFileName = "ATBS.csproj";
+    private const string ProjectFileName = "ATBS.Console.csproj";
 
     public static string GetProjectDirectory()
     {
         return FindProjectDirectory(Directory.GetCurrentDirectory())
-            ?? FindProjectDirectory(AppContext.BaseDirectory)
-            ?? Directory.GetCurrentDirectory();
+               ?? FindProjectDirectory(AppContext.BaseDirectory)
+               ?? Directory.GetCurrentDirectory();
     }
 
     private static string? FindProjectDirectory(string startDirectory)

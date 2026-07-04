@@ -1,6 +1,6 @@
-using ATBS.DTOs;
+﻿using ATBS.Console.DTOs;
 
-namespace ATBS.Abstractions;
+namespace ATBS.Console.Abstractions;
 
 public interface IValidationMetadataService
 {

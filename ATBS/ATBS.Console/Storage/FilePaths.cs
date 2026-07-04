@@ -1,4 +1,4 @@
-namespace ATBS.Storage;
+﻿namespace ATBS.Console.Storage;
 
 public sealed class FilePaths(string dataDirectory)
 {
