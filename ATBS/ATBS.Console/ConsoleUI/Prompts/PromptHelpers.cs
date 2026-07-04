@@ -1,7 +1,7 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Prompts;
+namespace ATBS.Console.ConsoleUI.Prompts;
 
 /// <summary>
 /// Provides reusable Spectre.Console prompts for optional typed input.
@@ -93,6 +93,6 @@ public static class PromptHelpers
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[grey]Press any key to continue.[/]");
-        Console.ReadKey(intercept: true);
+        System.Console.ReadKey(intercept: true);
     }
 }

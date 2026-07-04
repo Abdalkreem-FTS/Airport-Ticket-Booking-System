@@ -1,8 +1,8 @@
-using ATBS.ConsoleUI.Rendering;
-using ATBS.ConsoleUI.Screens;
+﻿using ATBS.Console.ConsoleUI.Rendering;
+using ATBS.Console.ConsoleUI.Screens;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI;
+namespace ATBS.Console.ConsoleUI;
 
 /// <summary>
 /// Runs the interactive Spectre.Console application and routes users to role workspaces.

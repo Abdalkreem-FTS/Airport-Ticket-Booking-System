@@ -1,12 +1,12 @@
-using ATBS.Abstractions;
-using ATBS.ConsoleUI.Prompts;
-using ATBS.ConsoleUI.Rendering;
-using ATBS.DTOs;
-using ATBS.Models;
-using ATBS.Models.Enums;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.ConsoleUI.Prompts;
+using ATBS.Console.ConsoleUI.Rendering;
+using ATBS.Console.DTOs;
+using ATBS.Console.Models;
+using ATBS.Console.Models.Enums;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Screens;
+namespace ATBS.Console.ConsoleUI.Screens;
 
 /// <summary>
 /// Lets a passenger change the class of an active booking.
@@ -20,7 +20,15 @@ public sealed class ModifyBookingScreen(IBookingService bookingService, IFlightR
     {
         AppHeader.Render("Modify booking", $"{passenger.FirstName} {passenger.LastName}");
 
-        var bookings = (await bookingService.GetPassengerBookingsAsync(passenger.Id))
+        var bookingsResult = await bookingService.GetPassengerBookingsAsync(passenger.Id);
+        if (bookingsResult.IsError)
+        {
+            ErrorTableRenderer.RenderResultErrors(bookingsResult.Errors);
+            PromptHelpers.Pause();
+            return;
+        }
+
+        var bookings = bookingsResult.Value
             .Where(booking => booking.Status == BookingStatus.Confirmed)
             .ToList();
 
@@ -33,15 +41,16 @@ public sealed class ModifyBookingScreen(IBookingService bookingService, IFlightR
         }
 
         var booking = SelectBooking(bookings);
-        var flight = await flightRepository.GetByIdAsync(booking.FlightId);
-        if (flight is null)
+        var flightResult = await flightRepository.GetByIdAsync(booking.FlightId);
+        if (flightResult.IsError)
         {
-            AnsiConsole.MarkupLine("[red]The flight for this booking was not found.[/]");
+            ErrorTableRenderer.RenderResultErrors(flightResult.Errors);
             PromptHelpers.Pause();
             
             return;
         }
 
+        var flight = flightResult.Value;
         var newClass = SelectNewClass(flight, booking.Class);
         if (newClass is null)
         {
@@ -56,22 +65,22 @@ public sealed class ModifyBookingScreen(IBookingService bookingService, IFlightR
             return;
         }
 
-        try
+        var modifiedResult = await bookingService.ModifyBookingAsync(new ModifyBookingRequest
         {
-            var modified = await bookingService.ModifyBookingAsync(new ModifyBookingRequest
-            {
-                PassengerId = passenger.Id,
-                BookingId = booking.Id,
-                NewClass = newClass.Value
-            });
+            PassengerId = passenger.Id,
+            BookingId = booking.Id,
+            NewClass = newClass.Value
+        });
 
-            AnsiConsole.MarkupLine($"[green]Booking updated.[/] New class: [cyan]{modified.Class}[/], price: [green]${modified.Price:F2}[/]");
-        }
-        catch (InvalidOperationException exception)
+        if (modifiedResult.IsError)
         {
-            AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}[/]");
+            ErrorTableRenderer.RenderResultErrors(modifiedResult.Errors);
+            PromptHelpers.Pause();
+            return;
         }
 
+        var modified = modifiedResult.Value;
+        AnsiConsole.MarkupLine($"[green]Booking updated.[/] New class: [cyan]{modified.Class}[/], price: [green]${modified.Price:F2}[/]");
         PromptHelpers.Pause();
     }
 

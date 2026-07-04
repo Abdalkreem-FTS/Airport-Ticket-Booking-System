@@ -1,8 +1,8 @@
-using ATBS.Abstractions;
-using ATBS.ConsoleUI.Prompts;
-using ATBS.ConsoleUI.Rendering;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.ConsoleUI.Prompts;
+using ATBS.Console.ConsoleUI.Rendering;
 
-namespace ATBS.ConsoleUI.Screens;
+namespace ATBS.Console.ConsoleUI.Screens;
 
 /// <summary>
 /// Collects manager booking filters and displays matching bookings.
@@ -20,7 +20,15 @@ public sealed class ManagerBookingFilterScreen(
         AppHeader.Render("Filter bookings");
         
         var criteria = BookingSearchPrompt.Ask();
-        var bookings = await managerBookingService.FilterBookingsAsync(criteria);
+        var bookingsResult = await managerBookingService.FilterBookingsAsync(criteria);
+        if (bookingsResult.IsError)
+        {
+            ErrorTableRenderer.RenderResultErrors(bookingsResult.Errors);
+            PromptHelpers.Pause();
+            return;
+        }
+
+        var bookings = bookingsResult.Value;
 
         AppHeader.Render("Filter bookings", $"{bookings.Count} result(s)");
         await BookingTableRenderer.RenderAsync(bookings, flightRepository, passengerRepository);

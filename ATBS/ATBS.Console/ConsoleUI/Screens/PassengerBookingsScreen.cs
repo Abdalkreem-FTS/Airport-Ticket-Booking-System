@@ -1,9 +1,9 @@
-using ATBS.Abstractions;
-using ATBS.ConsoleUI.Prompts;
-using ATBS.ConsoleUI.Rendering;
-using ATBS.Models;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.ConsoleUI.Prompts;
+using ATBS.Console.ConsoleUI.Rendering;
+using ATBS.Console.Models;
 
-namespace ATBS.ConsoleUI.Screens;
+namespace ATBS.Console.ConsoleUI.Screens;
 
 /// <summary>
 /// Displays the bookings that belong to the selected passenger.
@@ -17,7 +17,15 @@ public sealed class PassengerBookingsScreen(IBookingService bookingService, IFli
     {
         AppHeader.Render("My bookings", $"{passenger.FirstName} {passenger.LastName}");
         
-        var bookings = await bookingService.GetPassengerBookingsAsync(passenger.Id);
+        var bookingsResult = await bookingService.GetPassengerBookingsAsync(passenger.Id);
+        if (bookingsResult.IsError)
+        {
+            ErrorTableRenderer.RenderResultErrors(bookingsResult.Errors);
+            PromptHelpers.Pause();
+            return;
+        }
+
+        var bookings = bookingsResult.Value;
         await BookingTableRenderer.RenderAsync(bookings, flightRepository);
         
         PromptHelpers.Pause();

@@ -1,8 +1,8 @@
-using ATBS.Abstractions;
-using ATBS.ConsoleUI.Prompts;
-using ATBS.ConsoleUI.Rendering;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.ConsoleUI.Prompts;
+using ATBS.Console.ConsoleUI.Rendering;
 
-namespace ATBS.ConsoleUI.Screens;
+namespace ATBS.Console.ConsoleUI.Screens;
 
 /// <summary>
 /// Displays the flight validation rules used by the import process.

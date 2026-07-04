@@ -1,33 +1,31 @@
-using ATBS.DTOs;
-using ATBS.Models.Enums;
+﻿using ATBS.Console.DTOs;
+using ATBS.Console.Models.Enums;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Prompts;
+namespace ATBS.Console.ConsoleUI.Prompts;
 
 /// <summary>
-/// Collects optional filters for manager booking searches.
+/// Collects optional filters for passenger flight searches.
 /// </summary>
-public static class BookingSearchPrompt
+public static class FlightSearchPrompt
 {
     /// <summary>
-    /// Builds booking search criteria from console input.
+    /// Builds flight search criteria from console input.
     /// </summary>
-    public static BookingSearchCriteria Ask()
+    public static FlightSearchCriteria Ask()
     {
         AnsiConsole.MarkupLine("[grey]Leave any filter empty to skip it.[/]");
         AnsiConsole.WriteLine();
 
-        return new BookingSearchCriteria
+        return new FlightSearchCriteria
         {
-            FlightId = PromptHelpers.OptionalGuid("Flight ID:"),
-            PassengerId = PromptHelpers.OptionalGuid("Passenger ID:"),
-            MaxPrice = PromptHelpers.OptionalDecimal("Maximum price:"),
             DepartureCountry = PromptHelpers.OptionalText("Departure country:"),
             DestinationCountry = PromptHelpers.OptionalText("Destination country:"),
             DepartureDate = PromptHelpers.OptionalDate("Departure date:"),
             DepartureAirport = PromptHelpers.OptionalText("Departure airport:"),
             ArrivalAirport = PromptHelpers.OptionalText("Arrival airport:"),
-            Class = AskOptionalClass()
+            Class = AskOptionalClass(),
+            MaxPrice = PromptHelpers.OptionalDecimal("Maximum price:")
         };
     }
 

@@ -1,9 +1,9 @@
-using ATBS.ConsoleUI.Prompts;
-using ATBS.ConsoleUI.Rendering;
-using ATBS.Abstractions;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.ConsoleUI.Prompts;
+using ATBS.Console.ConsoleUI.Rendering;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Screens;
+namespace ATBS.Console.ConsoleUI.Screens;
 
 /// <summary>
 /// Shows the passenger workspace and routes passenger actions to their screens.
@@ -22,7 +22,15 @@ public sealed class PassengerMenuScreen(
     public async Task RunAsync()
     {
         AppHeader.Render("Passenger workspace", "Select a passenger profile for this test session.");
-        var passenger = PassengerSelectionPrompt.Ask(await passengerRepository.GetAllAsync());
+        var passengersResult = await passengerRepository.GetAllAsync();
+        if (passengersResult.IsError)
+        {
+            ErrorTableRenderer.RenderResultErrors(passengersResult.Errors);
+            PromptHelpers.Pause();
+            return;
+        }
+
+        var passenger = PassengerSelectionPrompt.Ask(passengersResult.Value);
         if (passenger is null)
         {
             EmptyStateRenderer.Render("No passengers exist yet.");

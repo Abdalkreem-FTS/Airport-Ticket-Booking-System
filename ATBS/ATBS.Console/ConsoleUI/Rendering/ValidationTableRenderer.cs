@@ -1,7 +1,7 @@
-using ATBS.DTOs;
+﻿using ATBS.Console.DTOs;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Rendering;
+namespace ATBS.Console.ConsoleUI.Rendering;
 
 /// <summary>
 /// Renders model validation rules for manager guidance.

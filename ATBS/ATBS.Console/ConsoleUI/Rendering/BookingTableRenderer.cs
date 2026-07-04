@@ -1,9 +1,9 @@
-using ATBS.Abstractions;
-using ATBS.Models;
-using ATBS.Models.Enums;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.Models;
+using ATBS.Console.Models.Enums;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Rendering;
+namespace ATBS.Console.ConsoleUI.Rendering;
 
 /// <summary>
 /// Renders booking records with related passenger and flight information.
@@ -35,11 +35,10 @@ public static class BookingTableRenderer
             .AddColumn("[grey]Price[/]")
             .AddColumn("[grey]Status[/]");
 
-        for (var index = 0; index < bookings.Count; index++)
+        foreach (var (booking, index) in bookings.Select((booking, index) => (booking, index)))
         {
-            var booking = bookings[index];
-            var flight = await flightRepository.GetByIdAsync(booking.FlightId);
-            var passenger = passengerRepository is null
+            var flightResult = await flightRepository.GetByIdAsync(booking.FlightId);
+            var passengerResult = passengerRepository is null
                 ? null
                 : await passengerRepository.GetByIdAsync(booking.PassengerId);
             var status = booking.Status == BookingStatus.Confirmed
@@ -49,12 +48,12 @@ public static class BookingTableRenderer
             table.AddRow(
                 (index + 1).ToString(),
                 Markup.Escape(booking.Id.ToString()[..8]),
-                passenger is null
-                    ? Markup.Escape(booking.PassengerId.ToString()[..8])
-                    : Markup.Escape($"{passenger.FirstName} {passenger.LastName}"),
-                flight is null
-                    ? Markup.Escape(booking.FlightId.ToString()[..8])
-                    : $"{Markup.Escape(flight.FlightNumber)}\n[grey]{Markup.Escape(flight.DepartureAirport)} -> {Markup.Escape(flight.ArrivalAirport)}[/]",
+                passengerResult?.IsSuccess == true
+                    ? Markup.Escape($"{passengerResult.Value.FirstName} {passengerResult.Value.LastName}")
+                    : Markup.Escape(booking.PassengerId.ToString()[..8]),
+                flightResult.IsSuccess
+                    ? $"{Markup.Escape(flightResult.Value.FlightNumber)}\n[grey]{Markup.Escape(flightResult.Value.DepartureAirport)} -> {Markup.Escape(flightResult.Value.ArrivalAirport)}[/]"
+                    : Markup.Escape(booking.FlightId.ToString()[..8]),
                 booking.Class.ToString(),
                 $"[green]${booking.Price:F2}[/]",
                 status);

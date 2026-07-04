@@ -1,7 +1,7 @@
-using ATBS.Models;
+﻿using ATBS.Console.Models;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Prompts;
+namespace ATBS.Console.ConsoleUI.Prompts;
 
 /// <summary>
 /// Lets the tester choose which passenger profile to use.

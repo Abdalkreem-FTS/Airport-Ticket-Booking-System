@@ -1,6 +1,6 @@
-using Spectre.Console;
+﻿using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Rendering;
+namespace ATBS.Console.ConsoleUI.Rendering;
 
 /// <summary>
 /// Renders the shared page header and current workspace context.
@@ -12,7 +12,7 @@ public static class AppHeader
     /// </summary>
     public static void Render(string workspace, string? context = null)
     {
-        if (!Console.IsOutputRedirected)
+        if (!System.Console.IsOutputRedirected)
         {
             AnsiConsole.Clear();
         }

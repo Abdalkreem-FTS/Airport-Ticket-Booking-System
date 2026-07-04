@@ -1,8 +1,8 @@
-using ATBS.Abstractions;
-using ATBS.ConsoleUI.Prompts;
-using ATBS.ConsoleUI.Rendering;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.ConsoleUI.Prompts;
+using ATBS.Console.ConsoleUI.Rendering;
 
-namespace ATBS.ConsoleUI.Screens;
+namespace ATBS.Console.ConsoleUI.Screens;
 
 /// <summary>
 /// Collects flight search filters and displays matching available flights.
@@ -17,7 +17,15 @@ public sealed class FlightSearchScreen(IFlightService flightService)
         AppHeader.Render("Search flights");
         
         var criteria = FlightSearchPrompt.Ask();
-        var flights = await flightService.SearchAvailableFlightsAsync(criteria);
+        var flightsResult = await flightService.SearchAvailableFlightsAsync(criteria);
+        if (flightsResult.IsError)
+        {
+            ErrorTableRenderer.RenderResultErrors(flightsResult.Errors);
+            PromptHelpers.Pause();
+            return;
+        }
+
+        var flights = flightsResult.Value;
 
         AppHeader.Render("Search flights", $"{flights.Count} result(s)");
         FlightTableRenderer.Render(flights);

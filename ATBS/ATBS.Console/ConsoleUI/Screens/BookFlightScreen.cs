@@ -1,12 +1,12 @@
-using ATBS.Abstractions;
-using ATBS.ConsoleUI.Prompts;
-using ATBS.ConsoleUI.Rendering;
-using ATBS.DTOs;
-using ATBS.Models;
-using ATBS.Models.Enums;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.ConsoleUI.Prompts;
+using ATBS.Console.ConsoleUI.Rendering;
+using ATBS.Console.DTOs;
+using ATBS.Console.Models;
+using ATBS.Console.Models.Enums;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Screens;
+namespace ATBS.Console.ConsoleUI.Screens;
 
 /// <summary>
 /// Guides a passenger through searching, selecting, and confirming a flight booking.
@@ -20,7 +20,15 @@ public sealed class BookFlightScreen(IFlightService flightService, IBookingServi
     {
         AppHeader.Render("Book a flight", "Search first, then select a flight and class.");
         var criteria = FlightSearchPrompt.Ask();
-        var flights = await flightService.SearchAvailableFlightsAsync(criteria);
+        var flightsResult = await flightService.SearchAvailableFlightsAsync(criteria);
+        if (flightsResult.IsError)
+        {
+            ErrorTableRenderer.RenderResultErrors(flightsResult.Errors);
+            PromptHelpers.Pause();
+            return;
+        }
+
+        var flights = flightsResult.Value;
 
         AppHeader.Render("Book a flight", $"{flights.Count} available flight(s)");
         FlightTableRenderer.Render(flights);
@@ -51,24 +59,25 @@ public sealed class BookFlightScreen(IFlightService flightService, IBookingServi
             return;
         }
 
-        try
+        var bookingResult = await bookingService.BookFlightAsync(new CreateBookingRequest
         {
-            var booking = await bookingService.BookFlightAsync(new CreateBookingRequest
-            {
-                PassengerId = passenger.Id,
-                FlightId = flight.Id,
-                Class = selectedClass.Value
-            });
+            PassengerId = passenger.Id,
+            FlightId = flight.Id,
+            Class = selectedClass.Value
+        });
 
-            AnsiConsole.Write(new Panel(
-                    $"[green]Booking confirmed[/]\nID: {booking.Id}\nClass: {booking.Class}\nPrice: ${booking.Price:F2}")
-                .Border(BoxBorder.Rounded)
-                .BorderColor(Color.Green));
-        }
-        catch (InvalidOperationException exception)
+        if (bookingResult.IsError)
         {
-            AnsiConsole.MarkupLine($"[red]{Markup.Escape(exception.Message)}[/]");
+            ErrorTableRenderer.RenderResultErrors(bookingResult.Errors);
+            PromptHelpers.Pause();
+            return;
         }
+
+        var booking = bookingResult.Value;
+        AnsiConsole.Write(new Panel(
+                $"[green]Booking confirmed[/]\nID: {booking.Id}\nClass: {booking.Class}\nPrice: ${booking.Price:F2}")
+            .Border(BoxBorder.Rounded)
+            .BorderColor(Color.Green));
 
         PromptHelpers.Pause();
     }

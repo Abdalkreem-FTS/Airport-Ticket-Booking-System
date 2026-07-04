@@ -1,6 +1,6 @@
-using Spectre.Console;
+﻿using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Rendering;
+namespace ATBS.Console.ConsoleUI.Rendering;
 
 /// <summary>
 /// Renders a consistent empty-state message when no data is available.

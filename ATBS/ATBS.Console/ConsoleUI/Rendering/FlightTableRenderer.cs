@@ -1,7 +1,7 @@
-using ATBS.Models;
+﻿using ATBS.Console.Models;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Rendering;
+namespace ATBS.Console.ConsoleUI.Rendering;
 
 /// <summary>
 /// Renders flight search results with route, date, class, price, and seat details.

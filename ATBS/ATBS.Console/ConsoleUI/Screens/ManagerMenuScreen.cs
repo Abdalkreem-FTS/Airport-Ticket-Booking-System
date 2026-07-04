@@ -1,7 +1,7 @@
-using ATBS.ConsoleUI.Rendering;
+﻿using ATBS.Console.ConsoleUI.Rendering;
 using Spectre.Console;
 
-namespace ATBS.ConsoleUI.Screens;
+namespace ATBS.Console.ConsoleUI.Screens;
 
 /// <summary>
 /// Shows the manager workspace and routes manager actions to their screens.
