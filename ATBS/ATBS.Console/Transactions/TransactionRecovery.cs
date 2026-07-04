@@ -77,20 +77,17 @@ public static class TransactionRecovery
 
         foreach (var directory in directories.Where(Directory.Exists))
         {
-            foreach (var pattern in new[] { $"*.{txId}.temporary", $"*.{txId}.backup" })
+            foreach (var file in Directory.GetFiles(directory, $"*.{txId}.temporary"))
             {
-                foreach (var file in Directory.GetFiles(directory, pattern))
+                try
                 {
-                    try
-                    {
-                        File.Delete(file);
-                    }
-                    catch
-                    {
-                        System.Console.Error.WriteLine(
-                            $"[Recovery] Could not delete orphaned file '{file}' " +
-                            $"(transaction {txId[..8]}). Remove manually.");
-                    }
+                    File.Delete(file);
+                }
+                catch
+                {
+                    System.Console.Error.WriteLine(
+                        $"[Recovery] Could not delete orphaned file '{file}' " +
+                        $"(transaction {txId[..8]}). Remove manually.");
                 }
             }
         }

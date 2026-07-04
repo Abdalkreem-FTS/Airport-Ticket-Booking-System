@@ -104,8 +104,7 @@ public sealed class FileTransaction : ITransactionRuntime, IDisposable
         await _transactionLog.AddEntry(new TransactionLogEntry
         {
             TemporaryPath = temporaryPath,
-            FinalPath = path,
-            BackupPath = string.Empty
+            FinalPath = path
         });
     }
 

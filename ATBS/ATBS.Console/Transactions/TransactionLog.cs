@@ -9,7 +9,6 @@ public class TransactionLogEntry
 {
     public string TemporaryPath { get; init; } = string.Empty;
     public string FinalPath { get; init; } = string.Empty;
-    public string BackupPath { get; init; } = string.Empty; // "" = file did not exist before the transaction
 }
 
 public class TransactionLog
@@ -140,23 +139,16 @@ public class TransactionLog
     
     public void Rollback()
     {
-        foreach (var entry in Entries.Where(e => !string.IsNullOrEmpty(e.BackupPath) && File.Exists(e.BackupPath)))
-        {
-            File.Move(entry.BackupPath, entry.FinalPath, overwrite: true);
-        }
-
+        // The originals are never overwritten before commit, so undoing a transaction
+        // is simply discarding its staged temp files — there is nothing to restore.
         Cleanup();
     }
-    
+
     public void Cleanup()
     {
         foreach (var entry in Entries)
         {
             TryDelete(entry.TemporaryPath);
-            if (!string.IsNullOrEmpty(entry.BackupPath))
-            {
-                TryDelete(entry.BackupPath);
-            }
         }
 
         if (_path is not null)

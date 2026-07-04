@@ -1,4 +1,6 @@
-﻿namespace ATBS.Console.Transactions.Abstractions;
+﻿using ATBS.Console.Transactions.Exceptions;
+
+namespace ATBS.Console.Transactions.Abstractions;
 
 /// <summary>
 /// Encapsulates the concurrency-control policy for one isolation level: how reads see data, what

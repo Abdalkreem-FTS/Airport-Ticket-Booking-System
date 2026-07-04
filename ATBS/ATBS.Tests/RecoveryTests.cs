@@ -18,7 +18,7 @@ public sealed class RecoveryTests
         await File.WriteAllTextAsync(tempPath, "NEW");
 
         var log = TransactionLog.Create(logDirectory, id);
-        await log.AddEntry(new TransactionLogEntry { TemporaryPath = tempPath, FinalPath = finalPath, BackupPath = string.Empty });
+        await log.AddEntry(new TransactionLogEntry { TemporaryPath = tempPath, FinalPath = finalPath });
         await log.MarkCommitting();
 
         await TransactionRecovery.RecoverAll(logDirectory);
@@ -42,7 +42,7 @@ public sealed class RecoveryTests
         await File.WriteAllTextAsync(tempPath, "NEW");
 
         var log = TransactionLog.Create(logDirectory, id);
-        await log.AddEntry(new TransactionLogEntry { TemporaryPath = tempPath, FinalPath = finalPath, BackupPath = string.Empty });
+        await log.AddEntry(new TransactionLogEntry { TemporaryPath = tempPath, FinalPath = finalPath });
 
         await TransactionRecovery.RecoverAll(logDirectory);
 
@@ -67,7 +67,7 @@ public sealed class RecoveryTests
         await File.WriteAllTextAsync(tempPath, "NEW");
 
         var log = TransactionLog.Create(logDirectory, id);
-        await log.AddEntry(new TransactionLogEntry { TemporaryPath = tempPath, FinalPath = finalPath, BackupPath = string.Empty });
+        await log.AddEntry(new TransactionLogEntry { TemporaryPath = tempPath, FinalPath = finalPath });
         await log.MarkCommitting();
         await log.MarkCommitted();
 
@@ -92,7 +92,7 @@ public sealed class RecoveryTests
         await File.WriteAllTextAsync(tempPath, "NEW");
 
         var log = TransactionLog.Create(logDirectory, id);
-        await log.AddEntry(new TransactionLogEntry { TemporaryPath = tempPath, FinalPath = finalPath, BackupPath = string.Empty });
+        await log.AddEntry(new TransactionLogEntry { TemporaryPath = tempPath, FinalPath = finalPath });
         log.MarkRollingBackSync();
 
         await TransactionRecovery.RecoverAll(logDirectory);

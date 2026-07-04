@@ -1,4 +1,5 @@
 ﻿using ATBS.Console.Transactions.Enums;
+using ATBS.Console.Transactions.Exceptions;
 
 namespace ATBS.Console.Transactions.Abstractions;
 
