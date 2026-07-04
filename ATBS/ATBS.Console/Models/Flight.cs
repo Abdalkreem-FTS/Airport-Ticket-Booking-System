@@ -1,4 +1,4 @@
-namespace ATBS.Models;
+﻿namespace ATBS.Console.Models;
 
 /// <summary>
 /// Represents a scheduled flight with route details, capacity, and class pricing.

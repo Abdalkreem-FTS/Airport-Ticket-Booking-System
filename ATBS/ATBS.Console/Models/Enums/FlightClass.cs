@@ -1,4 +1,4 @@
-namespace ATBS.Models.Enums;
+﻿namespace ATBS.Console.Models.Enums;
 
 public enum FlightClass
 {

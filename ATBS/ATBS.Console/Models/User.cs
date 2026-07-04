@@ -1,4 +1,4 @@
-namespace ATBS.Models;
+﻿namespace ATBS.Console.Models;
 
 public abstract class User
 {

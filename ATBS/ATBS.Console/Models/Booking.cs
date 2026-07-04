@@ -1,6 +1,6 @@
-using ATBS.Models.Enums;
+﻿using ATBS.Console.Models.Enums;
 
-namespace ATBS.Models;
+namespace ATBS.Console.Models;
 
 /// <summary>
 /// Represents a passenger reservation for a specific flight and class.

@@ -1,4 +1,4 @@
-namespace ATBS.Models;
+﻿namespace ATBS.Console.Models;
 
 /// <summary>
 /// Represents a user who can manage bookings and import flight data.

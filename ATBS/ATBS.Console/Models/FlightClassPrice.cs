@@ -1,6 +1,6 @@
-using ATBS.Models.Enums;
+﻿using ATBS.Console.Models.Enums;
 
-namespace ATBS.Models;
+namespace ATBS.Console.Models;
 
 /// <summary>
 /// Describes the price and available seats for one class on a flight.
