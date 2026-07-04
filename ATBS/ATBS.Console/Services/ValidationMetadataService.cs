@@ -1,8 +1,8 @@
-using ATBS.Abstractions;
-using ATBS.DTOs;
-using ATBS.Validation;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.DTOs;
+using ATBS.Console.Validation;
 
-namespace ATBS.Services;
+namespace ATBS.Console.Services;
 
 /// <summary>
 /// Provides human-readable validation rules for manager import guidance.

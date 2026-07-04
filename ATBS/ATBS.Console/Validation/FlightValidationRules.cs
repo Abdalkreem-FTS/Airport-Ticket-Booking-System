@@ -1,7 +1,7 @@
-using ATBS.DTOs;
-using ATBS.Models.Enums;
+﻿using ATBS.Console.DTOs;
+using ATBS.Console.Models.Enums;
 
-namespace ATBS.Validation;
+namespace ATBS.Console.Validation;
 
 /// <summary>
 /// Shared flight validation field names, messages, and import guidance.

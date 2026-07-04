@@ -1,8 +1,10 @@
-using ATBS.Abstractions;
-using ATBS.DTOs;
-using ATBS.Models;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.DTOs;
+using ATBS.Console.Extensions;
+using ATBS.Console.Models;
+using ATBS.Console.Results;
 
-namespace ATBS.Services;
+namespace ATBS.Console.Services;
 
 /// <summary>
 /// Filters bookings for managers using booking, passenger, and flight criteria.
@@ -10,9 +12,15 @@ namespace ATBS.Services;
 public sealed class ManagerBookingService(IBookingRepository bookingRepository, IFlightRepository flightRepository)
     : IManagerBookingService
 {
-    public async Task<IReadOnlyList<Booking>> FilterBookingsAsync(BookingSearchCriteria criteria)
+    public async Task<Result<IReadOnlyList<Booking>>> FilterBookingsAsync(BookingSearchCriteria criteria)
     {
-        var bookings = (await bookingRepository.GetAllAsync()).AsEnumerable();
+        var bookingsResult = await bookingRepository.GetAllAsync();
+        if (bookingsResult.IsError)
+        {
+            return bookingsResult.Errors;
+        }
+
+        IEnumerable<Booking> bookings = bookingsResult.Value;
 
         if (criteria.FlightId is not null)
         {
@@ -41,7 +49,13 @@ public sealed class ManagerBookingService(IBookingRepository bookingRepository, 
         }
 
 
-        var flightsById = (await flightRepository.GetAllAsync()).ToDictionary(flight => flight.Id);
+        var flightsResult = await flightRepository.GetAllAsync();
+        if (flightsResult.IsError)
+        {
+            return flightsResult.Errors;
+        }
+
+        var flightsById = flightsResult.Value.ToDictionary(flight => flight.Id);
         bookings = bookings.Where(booking => flightsById.TryGetValue(booking.FlightId, out var flight) && MatchesFlightFilters(flight, criteria));
 
 
@@ -58,13 +72,13 @@ public sealed class ManagerBookingService(IBookingRepository bookingRepository, 
     private static bool MatchesFlightFilters(Flight flight, BookingSearchCriteria criteria)
     {
         if (!string.IsNullOrWhiteSpace(criteria.DepartureCountry)
-            && !TextEquals(flight.DepartureCountry, criteria.DepartureCountry))
+            && !flight.DepartureCountry.TextEquals(criteria.DepartureCountry))
         {
             return false;
         }
 
         if (!string.IsNullOrWhiteSpace(criteria.DestinationCountry)
-            && !TextEquals(flight.DestinationCountry, criteria.DestinationCountry))
+            && !flight.DestinationCountry.TextEquals(criteria.DestinationCountry))
         {
             return false;
         }
@@ -76,15 +90,12 @@ public sealed class ManagerBookingService(IBookingRepository bookingRepository, 
         }
 
         if (!string.IsNullOrWhiteSpace(criteria.DepartureAirport)
-            && !TextEquals(flight.DepartureAirport, criteria.DepartureAirport))
+            && !flight.DepartureAirport.TextEquals(criteria.DepartureAirport))
         {
             return false;
         }
 
         return string.IsNullOrWhiteSpace(criteria.ArrivalAirport)
-               || TextEquals(flight.ArrivalAirport, criteria.ArrivalAirport);
+               || flight.ArrivalAirport.TextEquals(criteria.ArrivalAirport);
     }
-
-    private static bool TextEquals(string currentValue, string requestedValue) =>
-        string.Equals(currentValue.Trim(), requestedValue.Trim(), StringComparison.OrdinalIgnoreCase);
 }

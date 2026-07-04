@@ -1,26 +1,34 @@
-using ATBS.Abstractions;
-using ATBS.DTOs;
-using ATBS.Models;
+﻿using ATBS.Console.Abstractions;
+using ATBS.Console.DTOs;
+using ATBS.Console.Extensions;
+using ATBS.Console.Models;
+using ATBS.Console.Results;
 
-namespace ATBS.Services;
+namespace ATBS.Console.Services;
 
 /// <summary>
 /// Searches available flights using optional passenger-selected criteria.
 /// </summary>
 public sealed class FlightService(IFlightRepository flightRepository) : IFlightService
 {
-    public async Task<IReadOnlyList<Flight>> SearchAvailableFlightsAsync(FlightSearchCriteria criteria)
+    public async Task<Result<IReadOnlyList<Flight>>> SearchAvailableFlightsAsync(FlightSearchCriteria criteria)
     {
-        var flights = (await flightRepository.GetAllAsync()).Where(flight => flight.DepartureDate >= DateTimeOffset.UtcNow);
+        var flightsResult = await flightRepository.GetAllAsync();
+        if (flightsResult.IsError)
+        {
+            return flightsResult.Errors;
+        }
+
+        var flights = flightsResult.Value.Where(flight => flight.DepartureDate >= DateTimeOffset.UtcNow);
 
         if (!string.IsNullOrWhiteSpace(criteria.DepartureCountry))
         {
-            flights = flights.Where(flight => TextEquals(flight.DepartureCountry, criteria.DepartureCountry));
+            flights = flights.Where(flight => flight.DepartureCountry.TextEquals(criteria.DepartureCountry));
         }
 
         if (!string.IsNullOrWhiteSpace(criteria.DestinationCountry))
         {
-            flights = flights.Where(flight => TextEquals(flight.DestinationCountry, criteria.DestinationCountry));
+            flights = flights.Where(flight => flight.DestinationCountry.TextEquals(criteria.DestinationCountry));
         }
 
         if (criteria.DepartureDate is not null)
@@ -30,12 +38,12 @@ public sealed class FlightService(IFlightRepository flightRepository) : IFlightS
 
         if (!string.IsNullOrWhiteSpace(criteria.DepartureAirport))
         {
-            flights = flights.Where(flight => TextEquals(flight.DepartureAirport, criteria.DepartureAirport));
+            flights = flights.Where(flight => flight.DepartureAirport.TextEquals(criteria.DepartureAirport));
         }
 
         if (!string.IsNullOrWhiteSpace(criteria.ArrivalAirport))
         {
-            flights = flights.Where(flight => TextEquals(flight.ArrivalAirport, criteria.ArrivalAirport));
+            flights = flights.Where(flight => flight.ArrivalAirport.TextEquals(criteria.ArrivalAirport));
         }
 
         if (criteria.Class is not null)
@@ -51,8 +59,5 @@ public sealed class FlightService(IFlightRepository flightRepository) : IFlightS
         return flights.OrderBy(flight => flight.DepartureDate).ToList();
     }
 
-    public async Task<Flight?> GetFlightByIdAsync(Guid id) => await flightRepository.GetByIdAsync(id);
-
-    private static bool TextEquals(string currentValue, string requestedValue) =>
-        string.Equals(currentValue.Trim(), requestedValue.Trim(), StringComparison.OrdinalIgnoreCase);
+    public async Task<Result<Flight>> GetFlightByIdAsync(Guid id) => await flightRepository.GetByIdAsync(id);
 }
