@@ -52,7 +52,7 @@ public sealed class FileTransaction : ITransactionRuntime, IDisposable
     public IReadOnlyDictionary<string, string> Staged => _staged;
 
     public async Task<string> ReadFromDiskAsync(string path, CancellationToken ct = default) =>
-        File.Exists(path) ? await TransientFileIo.ReadAllTextAsync(path, ct) : string.Empty;
+        File.Exists(path) ? await File.ReadAllTextAsync(path, ct) : string.Empty;
     
     public async Task<string> Read(TransactionFile file)
     {
@@ -181,7 +181,7 @@ public sealed class FileTransaction : ITransactionRuntime, IDisposable
         }
     }
     
-    private static void MoveIntoPlace(string temporaryPath, string finalPath) => TransientFileIo.Run(() =>
+    private static void MoveIntoPlace(string temporaryPath, string finalPath)
     {
         if (File.Exists(finalPath))
         {
@@ -191,7 +191,7 @@ public sealed class FileTransaction : ITransactionRuntime, IDisposable
         {
             File.Move(temporaryPath, finalPath);
         }
-    });
+    }
 
     private string ResolvePath(TransactionFile file) => _fileCatalog.GetPath(file);
 

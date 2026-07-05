@@ -52,7 +52,7 @@ public sealed class VersionStore : IVersionStore
         }
         
         var baseContent = File.Exists(path)
-            ? await TransientFileIo.ReadAllTextAsync(path, cancellationToken)
+            ? await File.ReadAllTextAsync(path, cancellationToken)
             : string.Empty;
 
         lock (_guard)
