@@ -15,6 +15,7 @@ public sealed class FileTransaction : ITransactionRuntime, IDisposable
 {
     private readonly IConcurrencyControlStrategy _strategy;
     private readonly TransactionFileCatalog _fileCatalog;
+    private readonly IStagedStore _stagedStore;
     private readonly TransactionLog _transactionLog;
 
     private readonly Dictionary<string, string> _staged = [];
@@ -28,26 +29,19 @@ public sealed class FileTransaction : ITransactionRuntime, IDisposable
     public FileTransaction(
         IConcurrencyControlStrategy strategy,
         TransactionFileCatalog fileCatalog,
-        ILockManager lockManager,
-        IVersionStore versionStore,
         IStagedStore stagedStore,
         string transactionLogDirectory,
         long snapshotSequence)
     {
         _strategy = strategy;
         _fileCatalog = fileCatalog;
-        LockManager = lockManager;
-        VersionStore = versionStore;
-        StagedStore = stagedStore;
+        _stagedStore = stagedStore;
         SnapshotSequence = snapshotSequence;
         _transactionLog = TransactionLog.Create(transactionLogDirectory, TransactionId);
     }
-    
+
     public Guid TransactionId { get; } = Guid.NewGuid();
     public long SnapshotSequence { get; }
-    public ILockManager LockManager { get; }
-    public IVersionStore VersionStore { get; }
-    public IStagedStore StagedStore { get; }
     public IDictionary<string, string> ReadCache => _readCache;
     public IReadOnlyDictionary<string, string> Staged => _staged;
 
@@ -97,7 +91,7 @@ public sealed class FileTransaction : ITransactionRuntime, IDisposable
         }
 
         _staged[path] = temporaryPath;
-        StagedStore.Register(path, temporaryPath);
+        _stagedStore.Register(path, temporaryPath);
 
         _readCache[path] = content;
 
@@ -129,7 +123,7 @@ public sealed class FileTransaction : ITransactionRuntime, IDisposable
             foreach (var (finalPath, temporaryPath) in _staged)
             {
                 MoveIntoPlace(temporaryPath, finalPath);
-                StagedStore.Unregister(finalPath, temporaryPath);
+                _stagedStore.Unregister(finalPath, temporaryPath);
             }
 
             await _transactionLog.MarkCommitted(ct);
@@ -153,7 +147,7 @@ public sealed class FileTransaction : ITransactionRuntime, IDisposable
 
         foreach (var (finalPath, temporaryPath) in _staged)
         {
-            StagedStore.Unregister(finalPath, temporaryPath);
+            _stagedStore.Unregister(finalPath, temporaryPath);
         }
 
         _transactionLog.Rollback();

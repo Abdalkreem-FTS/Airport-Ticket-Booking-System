@@ -1,10 +1,11 @@
-﻿namespace ATBS.Console.Transactions.Abstractions;
+namespace ATBS.Console.Transactions.Abstractions;
 
 /// <summary>
 /// The transaction-internal surface a <see cref="IConcurrencyControlStrategy"/> operates on. It
-/// exposes just enough of the transaction mechanism (identity, caches, shared managers, disk
-/// access) for a strategy to implement read visibility, locking, and commit validation without
-/// owning the staging/WAL machinery.
+/// exposes only the <b>per-transaction</b> state a strategy needs (identity, snapshot point, caches,
+/// raw disk access). The shared coordinators (lock manager, version store, staged store) are process
+/// singletons and are injected into the strategies directly, so they are deliberately <i>not</i> part
+/// of this per-operation surface.
 /// </summary>
 public interface ITransactionRuntime
 {
@@ -12,12 +13,6 @@ public interface ITransactionRuntime
 
     /// <summary>The global commit sequence captured when this transaction began (used by SNAPSHOT).</summary>
     long SnapshotSequence { get; }
-
-    ILockManager LockManager { get; }
-
-    IVersionStore VersionStore { get; }
-
-    IStagedStore StagedStore { get; }
 
     /// <summary>Per-resource content this transaction has read or written (its own view). Used for repeatable reads and own-write visibility.</summary>
     IDictionary<string, string> ReadCache { get; }

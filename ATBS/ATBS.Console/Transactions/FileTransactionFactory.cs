@@ -12,7 +12,6 @@ public sealed class FileTransactionFactory(
     FileTransactionContext transactionContext,
     TransactionLogDirectory transactionLogDirectory,
     ConcurrencyControlStrategyFactory strategyFactory,
-    ILockManager lockManager,
     IVersionStore versionStore,
     IStagedStore stagedStore)
     : IFileTransactionFactory
@@ -34,8 +33,6 @@ public sealed class FileTransactionFactory(
         var transaction = new FileTransaction(
             strategyFactory.For(isolationLevel),
             fileCatalog,
-            lockManager,
-            versionStore,
             stagedStore,
             transactionLogDirectory.DirectoryPath,
             snapshotSequence);

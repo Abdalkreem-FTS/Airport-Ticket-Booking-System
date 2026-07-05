@@ -30,8 +30,9 @@ public sealed class TransactionHarness : IDisposable
         StagedStore = new StagedStore();
 
         Factory = new FileTransactionFactory(
-            Catalog, Context, LogDirectory, new ConcurrencyControlStrategyFactory(),
-            LockManager, VersionStore, StagedStore);
+            Catalog, Context, LogDirectory,
+            new ConcurrencyControlStrategyFactory(LockManager, VersionStore, StagedStore),
+            VersionStore, StagedStore);
 
         Storage = new TransactionalJsonFileStorage(Catalog, Context);
         Flights = new FlightRepository(Storage);

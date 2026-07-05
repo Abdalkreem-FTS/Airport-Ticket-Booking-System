@@ -1,4 +1,4 @@
-﻿using ATBS.Console.Transactions.Abstractions;
+using ATBS.Console.Transactions.Abstractions;
 using ATBS.Console.Transactions.Enums;
 
 namespace ATBS.Console.Transactions.ConcurrencyControl;
@@ -14,48 +14,55 @@ namespace ATBS.Console.Transactions.ConcurrencyControl;
 /// <item>REPEATABLE READ / SERIALIZABLE → <see cref="ReadVisibility.Pinned"/>, shared read locks held to commit.</item>
 /// </list>
 /// At table granularity, holding the shared table lock to commit also blocks inserts, so REPEATABLE
-/// READ and SERIALIZABLE both prevent phantoms and behave identically here.
+/// READ and SERIALIZABLE both prevent phantoms and behave identically here. The shared coordinators
+/// (<see cref="ILockManager"/>, <see cref="IStagedStore"/>, <see cref="IVersionStore"/>) are process
+/// singletons injected here; only per-transaction state comes in via <see cref="ITransactionRuntime"/>.
 /// </summary>
-public sealed class LockBasedStrategy(ReadVisibility visibility, bool takeSharedReadLocks) : IConcurrencyControlStrategy
+public sealed class LockBasedStrategy(
+    ILockManager lockManager,
+    IStagedStore stagedStore,
+    IVersionStore versionStore,
+    ReadVisibility visibility,
+    bool takeSharedReadLocks) : IConcurrencyControlStrategy
 {
     public async Task<string> ReadAsync(ITransactionRuntime runtime, string path, CancellationToken cancellationToken = default)
     {
         if (takeSharedReadLocks)
         {
-            await runtime.LockManager.AcquireAsync(runtime.TransactionId, path, LockType.Shared, cancellationToken);
+            await lockManager.AcquireAsync(runtime.TransactionId, path, LockType.Shared, cancellationToken);
         }
 
         switch (visibility)
         {
             case ReadVisibility.Pinned:
-                
+
                 if (runtime.ReadCache.TryGetValue(path, out var pinned))
                 {
                     return pinned;
                 }
 
                 var read = await runtime.ReadFromDiskAsync(path, cancellationToken);
-                
+
                 runtime.ReadCache[path] = read;
-                
+
                 return read;
 
             case ReadVisibility.Staged:
-                
-                return runtime.StagedStore.ReadAny(path) ?? await runtime.ReadFromDiskAsync(path, cancellationToken);
+
+                return stagedStore.ReadAny(path) ?? await runtime.ReadFromDiskAsync(path, cancellationToken);
 
             case ReadVisibility.LatestCommitted:
             default:
-                
+
                 return await runtime.ReadFromDiskAsync(path, cancellationToken);
         }
     }
 
     public Task OnWriteAsync(ITransactionRuntime runtime, string path, CancellationToken cancellationToken = default) =>
-        runtime.LockManager.AcquireAsync(runtime.TransactionId, path, LockType.Exclusive, cancellationToken);
+        lockManager.AcquireAsync(runtime.TransactionId, path, LockType.Exclusive, cancellationToken);
 
     public void ValidateAndReserveCommit(ITransactionRuntime runtime, IReadOnlyDictionary<string, ResourceChange> changes) =>
-        runtime.VersionStore.CommitLocked(changes);
+        versionStore.CommitLocked(changes);
 
-    public void Release(ITransactionRuntime runtime) => runtime.LockManager.Release(runtime.TransactionId);
+    public void Release(ITransactionRuntime runtime) => lockManager.Release(runtime.TransactionId);
 }
