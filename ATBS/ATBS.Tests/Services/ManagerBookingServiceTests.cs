@@ -1,0 +1,135 @@
+using ATBS.Console.Abstractions;
+using ATBS.Console.DTOs;
+using ATBS.Console.Models;
+using ATBS.Console.Models.Enums;
+using ATBS.Console.Results;
+using ATBS.Console.Services;
+using ATBS.Tests.TestSupport;
+using NSubstitute;
+
+namespace ATBS.Tests.Services;
+
+public sealed class ManagerBookingServiceTests
+{
+    private readonly IBookingRepository _bookings = Substitute.For<IBookingRepository>();
+    private readonly IFlightRepository _flights = Substitute.For<IFlightRepository>();
+
+    private ManagerBookingService CreateService() => new(_bookings, _flights);
+
+    private void GivenBookings(params Booking[] bookings) =>
+        _bookings.GetAllAsync().Returns(Builders.Ok<IReadOnlyList<Booking>>(bookings.ToList()));
+
+    private void GivenFlights(params Flight[] flights) =>
+        _flights.GetAllAsync().Returns(Builders.Ok<IReadOnlyList<Flight>>(flights.ToList()));
+
+    [Fact]
+    public async Task FilterBookingsAsync_ReturnsAll_NewestFirst_WhenNoCriteria()
+    {
+        var older = Builders.NewBooking(bookedAt: DateTimeOffset.UtcNow.AddDays(-3));
+        var newer = Builders.NewBooking(bookedAt: DateTimeOffset.UtcNow.AddHours(-1));
+        GivenBookings(older, newer);
+
+        var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria());
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal([newer.Id, older.Id], result.Value.Select(booking => booking.Id));
+    }
+
+    [Fact]
+    public async Task FilterBookingsAsync_DoesNotLoadFlights_WhenOnlyBookingFiltersUsed()
+    {
+        GivenBookings(Builders.NewBooking());
+
+        await CreateService().FilterBookingsAsync(new BookingSearchCriteria
+        {
+            MaxPrice = 500m
+        });
+
+        await _flights.DidNotReceive().GetAllAsync();
+    }
+
+    [Fact]
+    public async Task FilterBookingsAsync_FiltersByFlightAndPassengerAndClassAndPrice()
+    {
+        var passengerId = Guid.NewGuid();
+        var flightId = Guid.NewGuid();
+        var match = Builders.NewBooking(passengerId: passengerId, flightId: flightId, flightClass: FlightClass.Business, price: 300m);
+        var wrongPassenger = Builders.NewBooking(flightId: flightId, flightClass: FlightClass.Business, price: 300m);
+        var wrongClass = Builders.NewBooking(passengerId: passengerId, flightId: flightId, flightClass: FlightClass.Economy, price: 300m);
+        var tooExpensive = Builders.NewBooking(passengerId: passengerId, flightId: flightId, flightClass: FlightClass.Business, price: 900m);
+        GivenBookings(match, wrongPassenger, wrongClass, tooExpensive);
+
+        var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria
+        {
+            FlightId = flightId,
+            PassengerId = passengerId,
+            Class = FlightClass.Business,
+            MaxPrice = 500m
+        });
+
+        Assert.Single(result.Value);
+        Assert.Equal(match.Id, result.Value[0].Id);
+    }
+
+    [Fact]
+    public async Task FilterBookingsAsync_AppliesFlightFilters_UsingRelatedFlight()
+    {
+        var jordanFlightId = Guid.NewGuid();
+        var egyptFlightId = Guid.NewGuid();
+        var jordanBooking = Builders.NewBooking(flightId: jordanFlightId);
+        var egyptBooking = Builders.NewBooking(flightId: egyptFlightId);
+        GivenBookings(jordanBooking, egyptBooking);
+        GivenFlights(Builders.NewFlight(id: jordanFlightId, departureCountry: "Jordan"), Builders.NewFlight(id: egyptFlightId, departureCountry: "Egypt"));
+
+        var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria
+        {
+            DepartureCountry = "Jordan"
+        });
+
+        Assert.Single(result.Value);
+        Assert.Equal(jordanBooking.Id, result.Value[0].Id);
+    }
+
+    [Fact]
+    public async Task FilterBookingsAsync_ExcludesBooking_WhenItsFlightIsMissing()
+    {
+        var bookingWithFlight = Builders.NewBooking(flightId: Guid.NewGuid());
+        var orphanBooking = Builders.NewBooking(flightId: Guid.NewGuid());
+        GivenBookings(bookingWithFlight, orphanBooking);
+        GivenFlights(Builders.NewFlight(id: bookingWithFlight.FlightId, departureCountry: "Jordan"));
+
+        var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria
+        {
+            DepartureCountry = "Jordan"
+        });
+
+        Assert.Single(result.Value);
+        Assert.Equal(bookingWithFlight.Id, result.Value[0].Id);
+    }
+
+    [Fact]
+    public async Task FilterBookingsAsync_PropagatesBookingRepositoryError()
+    {
+        _bookings.GetAllAsync().Returns(Builders.Fail<IReadOnlyList<Booking>>(Error.Failure("Bookings.LoadFailed", "io")));
+
+        var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria());
+
+        Assert.True(result.IsError);
+        Assert.Equal("Bookings.LoadFailed", result.TopError.Code);
+    }
+
+    [Fact]
+    public async Task FilterBookingsAsync_PropagatesFlightRepositoryError_WhenFlightFiltersRequested()
+    {
+        GivenBookings(Builders.NewBooking());
+        _flights.GetAllAsync().Returns(Builders.Fail<IReadOnlyList<Flight>>(Error.Failure("Flights.LoadFailed", "io")));
+
+        var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria
+        {
+            ArrivalAirport = "CDG"
+        });
+
+        Assert.True(result.IsError);
+        Assert.Equal("Flights.LoadFailed", result.TopError.Code);
+    }
+}
