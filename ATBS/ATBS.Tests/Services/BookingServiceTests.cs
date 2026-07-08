@@ -5,40 +5,53 @@ using ATBS.Console.Models.Enums;
 using ATBS.Console.Results;
 using ATBS.Console.Services;
 using ATBS.Tests.TestSupport;
-using NSubstitute;
+using Moq;
 
 namespace ATBS.Tests.Services;
 
 public sealed class BookingServiceTests
 {
-    private readonly IBookingRepository _bookings = Substitute.For<IBookingRepository>();
-    private readonly IFlightRepository _flights = Substitute.For<IFlightRepository>();
-    private readonly IPassengerRepository _passengers = Substitute.For<IPassengerRepository>();
-    private readonly IFileTransactionFactory _factory = Substitute.For<IFileTransactionFactory>();
+    private readonly Mock<IBookingRepository> _bookings = new();
+    private readonly Mock<IFlightRepository> _flights = new();
+    private readonly Mock<IPassengerRepository> _passengers = new();
+    private readonly Mock<IFileTransactionFactory> _factory = new();
 
-    private BookingService CreateService() => new(_bookings, _flights, _passengers, _factory);
-    
+    public BookingServiceTests()
+    {
+        // The transaction factory just runs the unit of work inline, and persistence succeeds by default.
+        // A test that needs a write to fail overrides that one repository call (Moq uses the latest setup).
+        _factory.RunsWorkInline<Booking>().RunsWorkInline<Updated>();
+        _flights.Setup(f => f.UpdateAsync(It.IsAny<Flight>())).ReturnsAsync(Builders.Ok(Result.Updated));
+        _bookings.Setup(b => b.UpdateAsync(It.IsAny<Booking>())).ReturnsAsync(Builders.Ok(Result.Updated));
+        _bookings.Setup(b => b.AddAsync(It.IsAny<Booking>())).ReturnsAsync(Builders.Ok(Result.Created));
+    }
+
+    private BookingService CreateService() => new(_bookings.Object, _flights.Object, _passengers.Object, _factory.Object);
+
+    private void GivenPassengerExists() =>
+        _passengers.Setup(p => p.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(Builders.Ok(Builders.NewPassenger()));
+
+    private void GivenFlight(Flight flight) =>
+        _flights.Setup(f => f.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(Builders.Ok(flight));
+
+    private void GivenBooking(Booking booking) =>
+        _bookings.Setup(b => b.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(Builders.Ok(booking));
+
     [Fact]
     public async Task BookFlightAsync_ReservesSeat_AndCreatesBooking_OnHappyPath()
     {
-        _factory.RunsWorkInline<Booking>();
         var passengerId = Guid.NewGuid();
         var flightId = Guid.NewGuid();
         var flight = Builders.NewFlight(id: flightId, classPrices: [Builders.NewClassPrice(price: 250m, availableSeats: 3)]);
+        GivenPassengerExists();
+        GivenFlight(flight);
 
-        _passengers.GetByIdAsync(passengerId).Returns(Builders.Ok(Builders.NewPassenger(passengerId)));
-        _flights.GetByIdAsync(flightId).Returns(Builders.Ok(flight));
-        _flights.UpdateAsync(Arg.Any<Flight>()).Returns(Builders.Ok(Result.Updated));
-        _bookings.AddAsync(Arg.Any<Booking>()).Returns(Builders.Ok(Result.Created));
-
-        var request = new CreateBookingRequest
+        var result = await CreateService().BookFlightAsync(new CreateBookingRequest
         {
             PassengerId = passengerId,
             FlightId = flightId,
             Class = FlightClass.Economy
-        };
-
-        var result = await CreateService().BookFlightAsync(request);
+        });
 
         Assert.True(result.IsSuccess);
         Assert.Equal(passengerId, result.Value.PassengerId);
@@ -46,29 +59,27 @@ public sealed class BookingServiceTests
         Assert.Equal(FlightClass.Economy, result.Value.Class);
         Assert.Equal(250m, result.Value.Price);
         Assert.Equal(2, flight.ClassPrices.Single().AvailableSeats);
-        await _flights.Received(1).UpdateAsync(flight);
-        await _bookings.Received(1).AddAsync(Arg.Is<Booking>(booking => booking.FlightId == flightId && booking.PassengerId == passengerId));
+        _flights.Verify(f => f.UpdateAsync(flight), Times.Once);
+        _bookings.Verify(b => b.AddAsync(It.Is<Booking>(booking => booking.FlightId == flightId && booking.PassengerId == passengerId)), Times.Once);
     }
 
     [Fact]
     public async Task BookFlightAsync_ReturnsError_WhenPassengerNotFound()
     {
-        _factory.RunsWorkInline<Booking>();
-        _passengers.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Fail<Passenger>(Error.NotFound("Passengers.NotFound", "missing")));
+        _passengers.Setup(p => p.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(Builders.Fail<Passenger>(Error.NotFound("Passengers.NotFound", "missing")));
 
         var result = await CreateService().BookFlightAsync(new CreateBookingRequest());
 
         Assert.True(result.IsError);
         Assert.Equal("Passengers.NotFound", result.TopError.Code);
-        await _flights.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+        _flights.Verify(f => f.GetByIdAsync(It.IsAny<Guid>()), Times.Never);
     }
 
     [Fact]
     public async Task BookFlightAsync_ReturnsError_WhenFlightNotFound()
     {
-        _factory.RunsWorkInline<Booking>();
-        _passengers.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Ok(Builders.NewPassenger()));
-        _flights.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Fail<Flight>(Error.NotFound("Flights.NotFound", "missing")));
+        GivenPassengerExists();
+        _flights.Setup(f => f.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(Builders.Fail<Flight>(Error.NotFound("Flights.NotFound", "missing")));
 
         var result = await CreateService().BookFlightAsync(new CreateBookingRequest());
 
@@ -79,10 +90,8 @@ public sealed class BookingServiceTests
     [Fact]
     public async Task BookFlightAsync_ReturnsNotFound_WhenRequestedClassIsNotOnFlight()
     {
-        _factory.RunsWorkInline<Booking>();
-        var flight = Builders.NewFlight(classPrices: [Builders.NewClassPrice(FlightClass.Business)]);
-        _passengers.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Ok(Builders.NewPassenger()));
-        _flights.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Ok(flight));
+        GivenPassengerExists();
+        GivenFlight(Builders.NewFlight(classPrices: [Builders.NewClassPrice(FlightClass.Business)]));
 
         var result = await CreateService().BookFlightAsync(new CreateBookingRequest
         {
@@ -97,10 +106,8 @@ public sealed class BookingServiceTests
     [Fact]
     public async Task BookFlightAsync_ReturnsConflict_WhenNoSeatsAvailable()
     {
-        _factory.RunsWorkInline<Booking>();
-        var flight = Builders.NewFlight(classPrices: [Builders.NewClassPrice(availableSeats: 0)]);
-        _passengers.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Ok(Builders.NewPassenger()));
-        _flights.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Ok(flight));
+        GivenPassengerExists();
+        GivenFlight(Builders.NewFlight(classPrices: [Builders.NewClassPrice(availableSeats: 0)]));
 
         var result = await CreateService().BookFlightAsync(new CreateBookingRequest
         {
@@ -110,18 +117,15 @@ public sealed class BookingServiceTests
         Assert.True(result.IsError);
         Assert.Equal("Flights.NoSeats", result.TopError.Code);
         Assert.Equal(ErrorType.Conflict, result.TopError.Type);
-        await _bookings.DidNotReceive().AddAsync(Arg.Any<Booking>());
+        _bookings.Verify(b => b.AddAsync(It.IsAny<Booking>()), Times.Never);
     }
 
     [Fact]
     public async Task BookFlightAsync_PropagatesError_WhenBookingCannotBeSaved()
     {
-        _factory.RunsWorkInline<Booking>();
-        var flight = Builders.NewFlight(classPrices: [Builders.NewClassPrice(availableSeats: 1)]);
-        _passengers.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Ok(Builders.NewPassenger()));
-        _flights.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Ok(flight));
-        _flights.UpdateAsync(Arg.Any<Flight>()).Returns(Builders.Ok(Result.Updated));
-        _bookings.AddAsync(Arg.Any<Booking>()).Returns(Builders.Fail<Created>(Error.Failure("Bookings.SaveFailed", "disk full")));
+        GivenPassengerExists();
+        GivenFlight(Builders.NewFlight(classPrices: [Builders.NewClassPrice(availableSeats: 1)]));
+        _bookings.Setup(b => b.AddAsync(It.IsAny<Booking>())).ReturnsAsync(Builders.Fail<Created>(Error.Failure("Bookings.SaveFailed", "disk full")));
 
         var result = await CreateService().BookFlightAsync(new CreateBookingRequest
         {
@@ -131,39 +135,32 @@ public sealed class BookingServiceTests
         Assert.True(result.IsError);
         Assert.Equal("Bookings.SaveFailed", result.TopError.Code);
     }
-    
+
     [Fact]
     public async Task CancelBookingAsync_ReleasesSeat_AndMarksCancelled_OnHappyPath()
     {
-        _factory.RunsWorkInline<Updated>();
         var passengerId = Guid.NewGuid();
         var flightId = Guid.NewGuid();
         var bookingId = Guid.NewGuid();
         var booking = Builders.NewBooking(id: bookingId, passengerId: passengerId, flightId: flightId);
         var flight = Builders.NewFlight(id: flightId, classPrices: [Builders.NewClassPrice(availableSeats: 5)]);
-
-        _bookings.GetByIdAsync(bookingId).Returns(Builders.Ok(booking));
-        _flights.GetByIdAsync(flightId).Returns(Builders.Ok(flight));
-        _flights.UpdateAsync(Arg.Any<Flight>()).Returns(Builders.Ok(Result.Updated));
-        _bookings.UpdateAsync(Arg.Any<Booking>()).Returns(Builders.Ok(Result.Updated));
+        GivenBooking(booking);
+        GivenFlight(flight);
 
         var result = await CreateService().CancelBookingAsync(passengerId, bookingId);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(6, flight.ClassPrices.Single().AvailableSeats);
         Assert.Equal(BookingStatus.Cancelled, booking.Status);
-        await _bookings.Received(1).UpdateAsync(booking);
+        _bookings.Verify(b => b.UpdateAsync(booking), Times.Once);
     }
 
     [Fact]
     public async Task CancelBookingAsync_ReturnsForbidden_WhenBookingBelongsToAnotherPassenger()
     {
-        _factory.RunsWorkInline<Updated>();
-        var bookingId = Guid.NewGuid();
-        var booking = Builders.NewBooking(id: bookingId, passengerId: Guid.NewGuid());
-        _bookings.GetByIdAsync(bookingId).Returns(Builders.Ok(booking));
+        GivenBooking(Builders.NewBooking(passengerId: Guid.NewGuid()));
 
-        var result = await CreateService().CancelBookingAsync(Guid.NewGuid(), bookingId);
+        var result = await CreateService().CancelBookingAsync(Guid.NewGuid(), Guid.NewGuid());
 
         Assert.True(result.IsError);
         Assert.Equal("Bookings.NotOwned", result.TopError.Code);
@@ -173,24 +170,20 @@ public sealed class BookingServiceTests
     [Fact]
     public async Task CancelBookingAsync_IsIdempotent_WhenBookingAlreadyCancelled()
     {
-        _factory.RunsWorkInline<Updated>();
         var passengerId = Guid.NewGuid();
-        var bookingId = Guid.NewGuid();
-        var booking = Builders.NewBooking(id: bookingId, passengerId: passengerId, status: BookingStatus.Cancelled);
-        _bookings.GetByIdAsync(bookingId).Returns(Builders.Ok(booking));
+        GivenBooking(Builders.NewBooking(passengerId: passengerId, status: BookingStatus.Cancelled));
 
-        var result = await CreateService().CancelBookingAsync(passengerId, bookingId);
+        var result = await CreateService().CancelBookingAsync(passengerId, Guid.NewGuid());
 
         Assert.True(result.IsSuccess);
-        await _flights.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
-        await _bookings.DidNotReceive().UpdateAsync(Arg.Any<Booking>());
+        _flights.Verify(f => f.GetByIdAsync(It.IsAny<Guid>()), Times.Never);
+        _bookings.Verify(b => b.UpdateAsync(It.IsAny<Booking>()), Times.Never);
     }
 
     [Fact]
     public async Task CancelBookingAsync_PropagatesError_WhenBookingNotFound()
     {
-        _factory.RunsWorkInline<Updated>();
-        _bookings.GetByIdAsync(Arg.Any<Guid>()).Returns(Builders.Fail<Booking>(Error.NotFound("Bookings.NotFound", "missing")));
+        _bookings.Setup(b => b.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(Builders.Fail<Booking>(Error.NotFound("Bookings.NotFound", "missing")));
 
         var result = await CreateService().CancelBookingAsync(Guid.NewGuid(), Guid.NewGuid());
 
@@ -203,17 +196,13 @@ public sealed class BookingServiceTests
     [Fact]
     public async Task ModifyBookingAsync_MovesSeatsBetweenClasses_AndRepricesBooking()
     {
-        _factory.RunsWorkInline<Booking>();
         var passengerId = Guid.NewGuid();
         var flightId = Guid.NewGuid();
         var bookingId = Guid.NewGuid();
         var booking = Builders.NewBooking(id: bookingId, passengerId: passengerId, flightId: flightId, flightClass: FlightClass.Economy, price: 100m);
         var flight = Builders.NewFlight(id: flightId, classPrices: [Builders.NewClassPrice(price: 100m, availableSeats: 5), Builders.NewClassPrice(FlightClass.Business, price: 300m, availableSeats: 2)]);
-
-        _bookings.GetByIdAsync(bookingId).Returns(Builders.Ok(booking));
-        _flights.GetByIdAsync(flightId).Returns(Builders.Ok(flight));
-        _flights.UpdateAsync(Arg.Any<Flight>()).Returns(Builders.Ok(Result.Updated));
-        _bookings.UpdateAsync(Arg.Any<Booking>()).Returns(Builders.Ok(Result.Updated));
+        GivenBooking(booking);
+        GivenFlight(flight);
 
         var result = await CreateService().ModifyBookingAsync(new ModifyBookingRequest
         {
@@ -232,15 +221,10 @@ public sealed class BookingServiceTests
     [Fact]
     public async Task ModifyBookingAsync_IsNoOp_WhenNewClassEqualsCurrentClass()
     {
-        _factory.RunsWorkInline<Booking>();
         var passengerId = Guid.NewGuid();
-        var flightId = Guid.NewGuid();
         var bookingId = Guid.NewGuid();
-        var booking = Builders.NewBooking(id: bookingId, passengerId: passengerId, flightId: flightId, flightClass: FlightClass.Economy);
-        var flight = Builders.NewFlight(id: flightId);
-
-        _bookings.GetByIdAsync(bookingId).Returns(Builders.Ok(booking));
-        _flights.GetByIdAsync(flightId).Returns(Builders.Ok(flight));
+        GivenBooking(Builders.NewBooking(id: bookingId, passengerId: passengerId, flightClass: FlightClass.Economy));
+        GivenFlight(Builders.NewFlight());
 
         var result = await CreateService().ModifyBookingAsync(new ModifyBookingRequest
         {
@@ -250,23 +234,20 @@ public sealed class BookingServiceTests
         });
 
         Assert.True(result.IsSuccess);
-        await _flights.DidNotReceive().UpdateAsync(Arg.Any<Flight>());
-        await _bookings.DidNotReceive().UpdateAsync(Arg.Any<Booking>());
+        _flights.Verify(f => f.UpdateAsync(It.IsAny<Flight>()), Times.Never);
+        _bookings.Verify(b => b.UpdateAsync(It.IsAny<Booking>()), Times.Never);
     }
 
     [Fact]
     public async Task ModifyBookingAsync_ReturnsConflict_WhenBookingIsCancelled()
     {
-        _factory.RunsWorkInline<Booking>();
         var passengerId = Guid.NewGuid();
-        var bookingId = Guid.NewGuid();
-        var booking = Builders.NewBooking(id: bookingId, passengerId: passengerId, status: BookingStatus.Cancelled);
-        _bookings.GetByIdAsync(bookingId).Returns(Builders.Ok(booking));
+        GivenBooking(Builders.NewBooking(passengerId: passengerId, status: BookingStatus.Cancelled));
 
         var result = await CreateService().ModifyBookingAsync(new ModifyBookingRequest
         {
             PassengerId = passengerId,
-            BookingId = bookingId,
+            BookingId = Guid.NewGuid(),
             NewClass = FlightClass.Business
         });
 
@@ -277,15 +258,11 @@ public sealed class BookingServiceTests
     [Fact]
     public async Task ModifyBookingAsync_ReturnsConflict_WhenTargetClassHasNoSeats()
     {
-        _factory.RunsWorkInline<Booking>();
         var passengerId = Guid.NewGuid();
         var flightId = Guid.NewGuid();
         var bookingId = Guid.NewGuid();
-        var booking = Builders.NewBooking(id: bookingId, passengerId: passengerId, flightId: flightId, flightClass: FlightClass.Economy);
-        var flight = Builders.NewFlight(id: flightId, classPrices: [Builders.NewClassPrice(availableSeats: 5), Builders.NewClassPrice(FlightClass.Business, availableSeats: 0)]);
-
-        _bookings.GetByIdAsync(bookingId).Returns(Builders.Ok(booking));
-        _flights.GetByIdAsync(flightId).Returns(Builders.Ok(flight));
+        GivenBooking(Builders.NewBooking(id: bookingId, passengerId: passengerId, flightId: flightId, flightClass: FlightClass.Economy));
+        GivenFlight(Builders.NewFlight(id: flightId, classPrices: [Builders.NewClassPrice(availableSeats: 5), Builders.NewClassPrice(FlightClass.Business, availableSeats: 0)]));
 
         var result = await CreateService().ModifyBookingAsync(new ModifyBookingRequest
         {
@@ -297,14 +274,14 @@ public sealed class BookingServiceTests
         Assert.True(result.IsError);
         Assert.Equal("Flights.NoSeats", result.TopError.Code);
     }
-    
+
     [Fact]
     public async Task GetPassengerBookingsAsync_ReturnsBookings_NewestFirst()
     {
         var passengerId = Guid.NewGuid();
         var older = Builders.NewBooking(passengerId: passengerId, bookedAt: DateTimeOffset.UtcNow.AddDays(-2));
         var newer = Builders.NewBooking(passengerId: passengerId, bookedAt: DateTimeOffset.UtcNow.AddHours(-1));
-        _bookings.GetByPassengerIdAsync(passengerId).Returns(Builders.Ok<IReadOnlyList<Booking>>([older, newer]));
+        _bookings.Setup(b => b.GetByPassengerIdAsync(passengerId)).ReturnsAsync(Builders.Ok<IReadOnlyList<Booking>>([older, newer]));
 
         var result = await CreateService().GetPassengerBookingsAsync(passengerId);
 
@@ -315,7 +292,7 @@ public sealed class BookingServiceTests
     [Fact]
     public async Task GetPassengerBookingsAsync_PropagatesRepositoryError()
     {
-        _bookings.GetByPassengerIdAsync(Arg.Any<Guid>()).Returns(Builders.Fail<IReadOnlyList<Booking>>(Error.Failure("Bookings.LoadFailed", "io")));
+        _bookings.Setup(b => b.GetByPassengerIdAsync(It.IsAny<Guid>())).ReturnsAsync(Builders.Fail<IReadOnlyList<Booking>>(Error.Failure("Bookings.LoadFailed", "io")));
 
         var result = await CreateService().GetPassengerBookingsAsync(Guid.NewGuid());
 

@@ -40,6 +40,10 @@ internal static class Builders
             ClassPrices = classPrices ?? [NewClassPrice()]
         };
 
+    /// <summary>A flight offering a single economy fare — the common shape when a test only cares about seat counts.</summary>
+    public static Flight NewEconomyFlight(int availableSeats, decimal price = 100m) =>
+        NewFlight(classPrices: [NewClassPrice(price: price, availableSeats: availableSeats)]);
+
     public static Booking NewBooking(
         Guid? id = null,
         Guid? passengerId = null,

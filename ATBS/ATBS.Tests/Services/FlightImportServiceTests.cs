@@ -6,7 +6,7 @@ using ATBS.Console.Services;
 using ATBS.Tests.TestSupport;
 using FluentValidation;
 using FluentValidation.Results;
-using NSubstitute;
+using Moq;
 
 namespace ATBS.Tests.Services;
 
@@ -18,22 +18,23 @@ public sealed class FlightImportServiceTests : IDisposable
 
     private const string ValidRow = "RJ100,Jordan,France,2030-01-01,AMM,CDG,100,100,10,,,,";
 
-    private readonly IFlightRepository _flights = Substitute.For<IFlightRepository>();
-    private readonly IValidator<Flight> _validator = Substitute.For<IValidator<Flight>>();
-    private readonly IFileTransactionFactory _factory = Substitute.For<IFileTransactionFactory>();
+    private readonly Mock<IFlightRepository> _flights = new();
+    private readonly Mock<IValidator<Flight>> _validator = new();
+    private readonly Mock<IFileTransactionFactory> _factory = new();
     private readonly string _tempDirectory;
 
     public FlightImportServiceTests()
     {
         _tempDirectory = Path.Combine(Path.GetTempPath(), "atbs_import_tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDirectory);
-        ValidatorReturns(); 
+        ValidatorReturns();
+        _factory.RunsWorkInline<ImportResult>();
     }
 
-    private FlightImportService CreateService() => new(_flights, _validator, _factory);
+    private FlightImportService CreateService() => new(_flights.Object, _validator.Object, _factory.Object);
 
     private void ValidatorReturns(params ValidationFailure[] failures) =>
-        _validator.ValidateAsync(Arg.Any<Flight>(), Arg.Any<CancellationToken>()).Returns(new ValidationResult(failures));
+        _validator.Setup(v => v.ValidateAsync(It.IsAny<Flight>(), It.IsAny<CancellationToken>())).ReturnsAsync(new ValidationResult(failures));
 
     private string WriteCsv(params string[] lines)
     {
@@ -105,7 +106,7 @@ public sealed class FlightImportServiceTests : IDisposable
         Assert.True(result.IsSuccess);
         Assert.Empty(result.Value.ValidFlights);
         Assert.Contains(result.Value.Errors, error => error.Field == "DepartureDate");
-        await _validator.DidNotReceive().ValidateAsync(Arg.Any<Flight>(), Arg.Any<CancellationToken>());
+        _validator.Verify(v => v.ValidateAsync(It.IsAny<Flight>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -124,15 +125,14 @@ public sealed class FlightImportServiceTests : IDisposable
     [Fact]
     public async Task ImportAsync_SavesValidFlights_WithinTransaction()
     {
-        _factory.RunsWorkInline<ImportResult>();
-        _flights.AddRangeAsync(Arg.Any<IEnumerable<Flight>>()).Returns(Builders.Ok(Result.Created));
+        _flights.Setup(f => f.AddRangeAsync(It.IsAny<IEnumerable<Flight>>())).ReturnsAsync(Builders.Ok(Result.Created));
         var path = WriteCsv(ValidHeader, ValidRow);
 
         var result = await CreateService().ImportAsync(path);
 
         Assert.True(result.IsSuccess);
         Assert.Single(result.Value.ValidFlights);
-        await _flights.Received(1).AddRangeAsync(Arg.Is<IEnumerable<Flight>>(flights => flights.Count() == 1));
+        _flights.Verify(f => f.AddRangeAsync(It.Is<IEnumerable<Flight>>(flights => flights.Count() == 1)), Times.Once);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public sealed class FlightImportServiceTests : IDisposable
 
         Assert.True(result.IsSuccess);
         Assert.Empty(result.Value.ValidFlights);
-        await _flights.DidNotReceive().AddRangeAsync(Arg.Any<IEnumerable<Flight>>());
+        _flights.Verify(f => f.AddRangeAsync(It.IsAny<IEnumerable<Flight>>()), Times.Never);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public sealed class FlightImportServiceTests : IDisposable
 
         Assert.True(result.IsError);
         Assert.Equal("Import.MissingColumns", result.TopError.Code);
-        await _flights.DidNotReceive().AddRangeAsync(Arg.Any<IEnumerable<Flight>>());
+        _flights.Verify(f => f.AddRangeAsync(It.IsAny<IEnumerable<Flight>>()), Times.Never);
     }
 
     public void Dispose()

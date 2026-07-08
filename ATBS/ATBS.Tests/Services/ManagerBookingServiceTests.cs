@@ -5,22 +5,22 @@ using ATBS.Console.Models.Enums;
 using ATBS.Console.Results;
 using ATBS.Console.Services;
 using ATBS.Tests.TestSupport;
-using NSubstitute;
+using Moq;
 
 namespace ATBS.Tests.Services;
 
 public sealed class ManagerBookingServiceTests
 {
-    private readonly IBookingRepository _bookings = Substitute.For<IBookingRepository>();
-    private readonly IFlightRepository _flights = Substitute.For<IFlightRepository>();
+    private readonly Mock<IBookingRepository> _bookings = new();
+    private readonly Mock<IFlightRepository> _flights = new();
 
-    private ManagerBookingService CreateService() => new(_bookings, _flights);
+    private ManagerBookingService CreateService() => new(_bookings.Object, _flights.Object);
 
     private void GivenBookings(params Booking[] bookings) =>
-        _bookings.GetAllAsync().Returns(Builders.Ok<IReadOnlyList<Booking>>(bookings.ToList()));
+        _bookings.Setup(b => b.GetAllAsync()).ReturnsAsync(Builders.Ok<IReadOnlyList<Booking>>(bookings.ToList()));
 
     private void GivenFlights(params Flight[] flights) =>
-        _flights.GetAllAsync().Returns(Builders.Ok<IReadOnlyList<Flight>>(flights.ToList()));
+        _flights.Setup(f => f.GetAllAsync()).ReturnsAsync(Builders.Ok<IReadOnlyList<Flight>>(flights.ToList()));
 
     [Fact]
     public async Task FilterBookingsAsync_ReturnsAll_NewestFirst_WhenNoCriteria()
@@ -45,7 +45,7 @@ public sealed class ManagerBookingServiceTests
             MaxPrice = 500m
         });
 
-        await _flights.DidNotReceive().GetAllAsync();
+        _flights.Verify(f => f.GetAllAsync(), Times.Never);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public sealed class ManagerBookingServiceTests
     [Fact]
     public async Task FilterBookingsAsync_PropagatesBookingRepositoryError()
     {
-        _bookings.GetAllAsync().Returns(Builders.Fail<IReadOnlyList<Booking>>(Error.Failure("Bookings.LoadFailed", "io")));
+        _bookings.Setup(b => b.GetAllAsync()).ReturnsAsync(Builders.Fail<IReadOnlyList<Booking>>(Error.Failure("Bookings.LoadFailed", "io")));
 
         var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria());
 
@@ -122,7 +122,7 @@ public sealed class ManagerBookingServiceTests
     public async Task FilterBookingsAsync_PropagatesFlightRepositoryError_WhenFlightFiltersRequested()
     {
         GivenBookings(Builders.NewBooking());
-        _flights.GetAllAsync().Returns(Builders.Fail<IReadOnlyList<Flight>>(Error.Failure("Flights.LoadFailed", "io")));
+        _flights.Setup(f => f.GetAllAsync()).ReturnsAsync(Builders.Fail<IReadOnlyList<Flight>>(Error.Failure("Flights.LoadFailed", "io")));
 
         var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria
         {

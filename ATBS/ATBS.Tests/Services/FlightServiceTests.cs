@@ -5,18 +5,18 @@ using ATBS.Console.Models.Enums;
 using ATBS.Console.Results;
 using ATBS.Console.Services;
 using ATBS.Tests.TestSupport;
-using NSubstitute;
+using Moq;
 
 namespace ATBS.Tests.Services;
 
 public sealed class FlightServiceTests
 {
-    private readonly IFlightRepository _flights = Substitute.For<IFlightRepository>();
+    private readonly Mock<IFlightRepository> _flights = new();
 
-    private FlightService CreateService() => new(_flights);
+    private FlightService CreateService() => new(_flights.Object);
 
     private void GivenFlights(params Flight[] flights) =>
-        _flights.GetAllAsync().Returns(Builders.Ok<IReadOnlyList<Flight>>(flights.ToList()));
+        _flights.Setup(f => f.GetAllAsync()).ReturnsAsync(Builders.Ok<IReadOnlyList<Flight>>(flights.ToList()));
 
     [Fact]
     public async Task SearchAvailableFlightsAsync_ExcludesPastFlights_AndOrdersByDepartureAscending()
@@ -135,7 +135,7 @@ public sealed class FlightServiceTests
     [Fact]
     public async Task SearchAvailableFlightsAsync_PropagatesRepositoryError()
     {
-        _flights.GetAllAsync().Returns(Builders.Fail<IReadOnlyList<Flight>>(Error.Failure("Flights.LoadFailed", "io")));
+        _flights.Setup(f => f.GetAllAsync()).ReturnsAsync(Builders.Fail<IReadOnlyList<Flight>>(Error.Failure("Flights.LoadFailed", "io")));
 
         var result = await CreateService().SearchAvailableFlightsAsync(new FlightSearchCriteria());
 
@@ -148,12 +148,12 @@ public sealed class FlightServiceTests
     {
         var flightId = Guid.NewGuid();
         var flight = Builders.NewFlight(id: flightId);
-        _flights.GetByIdAsync(flightId).Returns(Builders.Ok(flight));
+        _flights.Setup(f => f.GetByIdAsync(flightId)).ReturnsAsync(Builders.Ok(flight));
 
         var result = await CreateService().GetFlightByIdAsync(flightId);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(flightId, result.Value.Id);
-        await _flights.Received(1).GetByIdAsync(flightId);
+        _flights.Verify(f => f.GetByIdAsync(flightId), Times.Once);
     }
 }
