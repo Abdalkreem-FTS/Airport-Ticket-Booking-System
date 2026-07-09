@@ -29,15 +29,15 @@ public sealed class ConcurrentBookingIntegrationTests
         var failures = results.Where(result => result.IsError).ToList();
 
         // Exactly `availableSeats` bookings win; the rest are rejected, not silently dropped.
-        Assert.Equal(availableSeats, succeeded);
-        Assert.Equal(concurrentAttempts - availableSeats, failures.Count);
+        succeeded.Should().Be(availableSeats);
+        failures.Should().HaveCount(concurrentAttempts - availableSeats);
 
         // Both "out of seats" and "gave up after contention retries" surface as ErrorType.Conflict.
-        Assert.All(failures, result => Assert.Equal(ErrorType.Conflict, result.TopError.Type));
+        failures.Should().OnlyContain(result => result.TopError.Type == ErrorType.Conflict);
 
         // Persisted state agrees with the winners: seats fully drained, one booking row per success.
-        Assert.Equal(0, (await harness.ReloadFlightAsync(flight)).ClassPrices.Single().AvailableSeats);
-        Assert.Equal(availableSeats, (await harness.ReloadBookingsAsync()).Count);
+        (await harness.ReloadFlightAsync(flight)).ClassPrices.Single().AvailableSeats.Should().Be(0);
+        (await harness.ReloadBookingsAsync()).Should().HaveCount(availableSeats);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public sealed class ConcurrentBookingIntegrationTests
         Result<Booking>[] results = await Task.WhenAll(
             flights.Select(flight => Task.Run(() => harness.BookAsync(passenger, flight))));
 
-        Assert.All(results, result => Assert.True(result.IsSuccess));
-        Assert.Equal(flights.Count, (await harness.ReloadBookingsAsync()).Count);
+        results.Should().OnlyContain(result => result.IsSuccess);
+        (await harness.ReloadBookingsAsync()).Should().HaveCount(flights.Count);
     }
 }

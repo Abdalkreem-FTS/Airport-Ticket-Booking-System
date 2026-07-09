@@ -11,7 +11,7 @@ public sealed class StringExtensionsTests
     [InlineData("PNA", "pna")]
     public void TextEquals_IsTrue_ForCaseInsensitiveTrimmedMatches(string left, string right)
     {
-        Assert.True(left.TextEquals(right));
+        left.TextEquals(right).Should().BeTrue();
     }
 
     [Theory]
@@ -20,6 +20,6 @@ public sealed class StringExtensionsTests
     [InlineData("", "Jordan")]
     public void TextEquals_IsFalse_ForDifferentText(string left, string right)
     {
-        Assert.False(left.TextEquals(right));
+        left.TextEquals(right).Should().BeFalse();
     }
 }

@@ -11,7 +11,7 @@ public sealed class FlightValidationRulesTests
     [InlineData(FlightClass.FirstClass, "FirstClassPrice")]
     public void PriceField_UsesClassPrefix(FlightClass flightClass, string expected)
     {
-        Assert.Equal(expected, FlightValidationRules.PriceField(flightClass));
+        FlightValidationRules.PriceField(flightClass).Should().Be(expected);
     }
 
     [Theory]
@@ -20,7 +20,7 @@ public sealed class FlightValidationRulesTests
     [InlineData(FlightClass.FirstClass, "FirstClassSeats")]
     public void SeatsField_UsesClassPrefix(FlightClass flightClass, string expected)
     {
-        Assert.Equal(expected, FlightValidationRules.SeatsField(flightClass));
+        FlightValidationRules.SeatsField(flightClass).Should().Be(expected);
     }
 
     [Fact]
@@ -28,9 +28,9 @@ public sealed class FlightValidationRulesTests
     {
         var fields = FlightValidationRules.Descriptions.Select(rule => rule.Field).ToList();
 
-        Assert.Contains("FlightNumber", fields);
-        Assert.Contains("Capacity", fields);
-        Assert.Contains("FirstClassSeats", fields);
-        Assert.All(FlightValidationRules.Descriptions, rule => Assert.NotEmpty(rule.Constraints));
+        fields.Should().Contain("FlightNumber");
+        fields.Should().Contain("Capacity");
+        fields.Should().Contain("FirstClassSeats");
+        FlightValidationRules.Descriptions.Should().OnlyContain(rule => rule.Constraints.Any());
     }
 }

@@ -42,7 +42,7 @@ public sealed class FlightImportServiceTests : IDisposable
         File.WriteAllLines(path, lines);
         return path;
     }
-    
+
     [Fact]
     public async Task PreviewImportAsync_ReportsFileError_WhenFileMissing()
     {
@@ -50,9 +50,9 @@ public sealed class FlightImportServiceTests : IDisposable
 
         var result = await CreateService().PreviewImportAsync(path);
 
-        Assert.True(result.IsSuccess);
-        Assert.Contains(result.Value.Errors, error => error.Field == "File");
-        Assert.Empty(result.Value.ValidFlights);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Errors.Should().Contain(error => error.Field == "File");
+        result.Value.ValidFlights.Should().BeEmpty();
     }
 
     [Fact]
@@ -62,8 +62,8 @@ public sealed class FlightImportServiceTests : IDisposable
 
         var result = await CreateService().PreviewImportAsync(path);
 
-        Assert.True(result.IsError);
-        Assert.Equal("Import.MissingColumns", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Import.MissingColumns");
     }
 
     [Fact]
@@ -73,10 +73,10 @@ public sealed class FlightImportServiceTests : IDisposable
 
         var result = await CreateService().PreviewImportAsync(path);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(0, result.Value.TotalRows);
-        Assert.Empty(result.Value.ValidFlights);
-        Assert.Empty(result.Value.Errors);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.TotalRows.Should().Be(0);
+        result.Value.ValidFlights.Should().BeEmpty();
+        result.Value.Errors.Should().BeEmpty();
     }
 
     [Fact]
@@ -86,13 +86,13 @@ public sealed class FlightImportServiceTests : IDisposable
 
         var result = await CreateService().PreviewImportAsync(path);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(1, result.Value.TotalRows);
-        var flight = Assert.Single(result.Value.ValidFlights);
-        Assert.Equal("RJ100", flight.FlightNumber);
-        Assert.Equal("Jordan", flight.DepartureCountry);
-        Assert.Equal(100, flight.Capacity);
-        Assert.Empty(result.Value.Errors);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.TotalRows.Should().Be(1);
+        var flight = result.Value.ValidFlights.Should().ContainSingle().Which;
+        flight.FlightNumber.Should().Be("RJ100");
+        flight.DepartureCountry.Should().Be("Jordan");
+        flight.Capacity.Should().Be(100);
+        result.Value.Errors.Should().BeEmpty();
     }
 
     [Fact]
@@ -103,9 +103,9 @@ public sealed class FlightImportServiceTests : IDisposable
 
         var result = await CreateService().PreviewImportAsync(path);
 
-        Assert.True(result.IsSuccess);
-        Assert.Empty(result.Value.ValidFlights);
-        Assert.Contains(result.Value.Errors, error => error.Field == "DepartureDate");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ValidFlights.Should().BeEmpty();
+        result.Value.Errors.Should().Contain(error => error.Field == "DepartureDate");
         _validator.Verify(v => v.ValidateAsync(It.IsAny<Flight>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -117,11 +117,11 @@ public sealed class FlightImportServiceTests : IDisposable
 
         var result = await CreateService().PreviewImportAsync(path);
 
-        Assert.True(result.IsSuccess);
-        Assert.Empty(result.Value.ValidFlights);
-        Assert.Contains(result.Value.Errors, error => error.Field == "Capacity");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ValidFlights.Should().BeEmpty();
+        result.Value.Errors.Should().Contain(error => error.Field == "Capacity");
     }
-    
+
     [Fact]
     public async Task ImportAsync_SavesValidFlights_WithinTransaction()
     {
@@ -130,8 +130,8 @@ public sealed class FlightImportServiceTests : IDisposable
 
         var result = await CreateService().ImportAsync(path);
 
-        Assert.True(result.IsSuccess);
-        Assert.Single(result.Value.ValidFlights);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ValidFlights.Should().ContainSingle();
         _flights.Verify(f => f.AddRangeAsync(It.Is<IEnumerable<Flight>>(flights => flights.Count() == 1)), Times.Once);
     }
 
@@ -143,8 +143,8 @@ public sealed class FlightImportServiceTests : IDisposable
 
         var result = await CreateService().ImportAsync(path);
 
-        Assert.True(result.IsSuccess);
-        Assert.Empty(result.Value.ValidFlights);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ValidFlights.Should().BeEmpty();
         _flights.Verify(f => f.AddRangeAsync(It.IsAny<IEnumerable<Flight>>()), Times.Never);
     }
 
@@ -155,8 +155,8 @@ public sealed class FlightImportServiceTests : IDisposable
 
         var result = await CreateService().ImportAsync(path);
 
-        Assert.True(result.IsError);
-        Assert.Equal("Import.MissingColumns", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Import.MissingColumns");
         _flights.Verify(f => f.AddRangeAsync(It.IsAny<IEnumerable<Flight>>()), Times.Never);
     }
 

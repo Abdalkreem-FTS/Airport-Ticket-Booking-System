@@ -28,8 +28,8 @@ public sealed class FlightServiceTests
 
         var result = await CreateService().SearchAvailableFlightsAsync(new FlightSearchCriteria());
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal([soon.Id, later.Id], result.Value.Select(flight => flight.Id));
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Select(flight => flight.Id).Should().Equal(soon.Id, later.Id);
     }
 
     [Fact]
@@ -44,8 +44,7 @@ public sealed class FlightServiceTests
             DepartureCountry = "  jORdan  "
         });
 
-        Assert.Single(result.Value);
-        Assert.Equal(jordan.Id, result.Value[0].Id);
+        result.Value.Should().ContainSingle().Which.Id.Should().Be(jordan.Id);
     }
 
     [Fact]
@@ -60,8 +59,7 @@ public sealed class FlightServiceTests
             DestinationCountry = "France"
         });
 
-        Assert.Single(result.Value);
-        Assert.Equal(toFrance.Id, result.Value[0].Id);
+        result.Value.Should().ContainSingle().Which.Id.Should().Be(toFrance.Id);
     }
 
     [Fact]
@@ -76,8 +74,7 @@ public sealed class FlightServiceTests
             DepartureDate = new DateOnly(2030, 6, 15)
         });
 
-        Assert.Single(result.Value);
-        Assert.Equal(onDate.Id, result.Value[0].Id);
+        result.Value.Should().ContainSingle().Which.Id.Should().Be(onDate.Id);
     }
 
     [Fact]
@@ -94,8 +91,7 @@ public sealed class FlightServiceTests
             ArrivalAirport = "CDG"
         });
 
-        Assert.Single(result.Value);
-        Assert.Equal(match.Id, result.Value[0].Id);
+        result.Value.Should().ContainSingle().Which.Id.Should().Be(match.Id);
     }
 
     [Fact]
@@ -111,8 +107,7 @@ public sealed class FlightServiceTests
             Class = FlightClass.Business
         });
 
-        Assert.Single(result.Value);
-        Assert.Equal(businessAvailable.Id, result.Value[0].Id);
+        result.Value.Should().ContainSingle().Which.Id.Should().Be(businessAvailable.Id);
     }
 
     [Fact]
@@ -128,8 +123,7 @@ public sealed class FlightServiceTests
             MaxPrice = 200m
         });
 
-        Assert.Single(result.Value);
-        Assert.Equal(affordable.Id, result.Value[0].Id);
+        result.Value.Should().ContainSingle().Which.Id.Should().Be(affordable.Id);
     }
 
     [Fact]
@@ -139,8 +133,8 @@ public sealed class FlightServiceTests
 
         var result = await CreateService().SearchAvailableFlightsAsync(new FlightSearchCriteria());
 
-        Assert.True(result.IsError);
-        Assert.Equal("Flights.LoadFailed", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Flights.LoadFailed");
     }
 
     [Fact]
@@ -152,8 +146,8 @@ public sealed class FlightServiceTests
 
         var result = await CreateService().GetFlightByIdAsync(flightId);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(flightId, result.Value.Id);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Id.Should().Be(flightId);
         _flights.Verify(f => f.GetByIdAsync(flightId), Times.Once);
     }
 }

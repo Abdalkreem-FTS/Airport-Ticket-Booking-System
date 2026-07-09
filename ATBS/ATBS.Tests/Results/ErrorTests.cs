@@ -7,8 +7,8 @@ public sealed class ErrorTests
     [Fact]
     public void Factory_UsesMethodName_AsDefaultCode()
     {
-        Assert.Equal("Failure", Error.Failure().Code);
-        Assert.Equal("NotFound", Error.NotFound().Code);
+        Error.Failure().Code.Should().Be("Failure");
+        Error.NotFound().Code.Should().Be("NotFound");
     }
 
     [Fact]
@@ -16,8 +16,8 @@ public sealed class ErrorTests
     {
         var error = Error.Validation("Flights.BadDate", "Departure date must be in the future.");
 
-        Assert.Equal("Flights.BadDate", error.Code);
-        Assert.Equal("Departure date must be in the future.", error.Description);
+        error.Code.Should().Be("Flights.BadDate");
+        error.Description.Should().Be("Departure date must be in the future.");
     }
 
     [Theory]
@@ -42,7 +42,7 @@ public sealed class ErrorTests
             _ => throw new ArgumentOutOfRangeException(nameof(expected))
         };
 
-        Assert.Equal(expected, error.Type);
+        error.Type.Should().Be(expected);
     }
 
     [Fact]
@@ -50,8 +50,8 @@ public sealed class ErrorTests
     {
         var error = Error.Create((int)ErrorType.NotFound, "Some.Code", "description");
 
-        Assert.Equal(ErrorType.NotFound, error.Type);
-        Assert.Equal("Some.Code", error.Code);
-        Assert.Equal("description", error.Description);
+        error.Type.Should().Be(ErrorType.NotFound);
+        error.Code.Should().Be("Some.Code");
+        error.Description.Should().Be("description");
     }
 }

@@ -10,8 +10,8 @@ public sealed class ValidationMetadataServiceTests
     {
         var rules = new ValidationMetadataService().GetFlightValidationRules();
 
-        Assert.NotEmpty(rules);
-        Assert.Same(FlightValidationRules.Descriptions, rules);
-        Assert.Contains(rules, rule => rule.Field == "FlightNumber");
+        rules.Should().NotBeEmpty();
+        rules.Should().BeSameAs(FlightValidationRules.Descriptions);
+        rules.Should().Contain(rule => rule.Field == "FlightNumber");
     }
 }

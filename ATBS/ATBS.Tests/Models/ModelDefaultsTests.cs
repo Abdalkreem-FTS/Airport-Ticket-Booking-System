@@ -10,8 +10,8 @@ public sealed class ModelDefaultsTests
     {
         var booking = new Booking();
 
-        Assert.Equal(BookingStatus.Confirmed, booking.Status);
-        Assert.NotEqual(Guid.Empty, booking.Id);
+        booking.Status.Should().Be(BookingStatus.Confirmed);
+        booking.Id.Should().NotBe(Guid.Empty);
     }
 
     [Fact]
@@ -19,14 +19,14 @@ public sealed class ModelDefaultsTests
     {
         var flight = new Flight();
 
-        Assert.NotEqual(Guid.Empty, flight.Id);
-        Assert.Empty(flight.ClassPrices);
+        flight.Id.Should().NotBe(Guid.Empty);
+        flight.ClassPrices.Should().BeEmpty();
     }
 
     [Fact]
     public void Passenger_And_Manager_ShareUserIdentity()
     {
-        Assert.IsType<User>(new Passenger(), exactMatch: false);
-        Assert.IsType<User>(new Manager(), exactMatch: false);
+        new Passenger().Should().BeAssignableTo<User>();
+        new Manager().Should().BeAssignableTo<User>();
     }
 }

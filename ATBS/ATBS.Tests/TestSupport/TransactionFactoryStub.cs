@@ -19,8 +19,7 @@ internal static class TransactionFactoryStub
     /// </summary>
     public static Mock<IFileTransactionFactory> RunsWorkInline<T>(this Mock<IFileTransactionFactory> factory)
     {
-        factory
-            .Setup(f => f.ExecuteAsync(
+        factory.Setup(f => f.ExecuteAsync(
                 It.IsAny<IsolationLevel>(),
                 It.IsAny<Func<Task<Result<T>>>>(),
                 It.IsAny<int>(),

@@ -31,8 +31,8 @@ public sealed class ManagerBookingServiceTests
 
         var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria());
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal([newer.Id, older.Id], result.Value.Select(booking => booking.Id));
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Select(booking => booking.Id).Should().Equal(newer.Id, older.Id);
     }
 
     [Fact]
@@ -67,8 +67,7 @@ public sealed class ManagerBookingServiceTests
             MaxPrice = 500m
         });
 
-        Assert.Single(result.Value);
-        Assert.Equal(match.Id, result.Value[0].Id);
+        result.Value.Should().ContainSingle().Which.Id.Should().Be(match.Id);
     }
 
     [Fact]
@@ -86,8 +85,7 @@ public sealed class ManagerBookingServiceTests
             DepartureCountry = "Jordan"
         });
 
-        Assert.Single(result.Value);
-        Assert.Equal(jordanBooking.Id, result.Value[0].Id);
+        result.Value.Should().ContainSingle().Which.Id.Should().Be(jordanBooking.Id);
     }
 
     [Fact]
@@ -103,8 +101,7 @@ public sealed class ManagerBookingServiceTests
             DepartureCountry = "Jordan"
         });
 
-        Assert.Single(result.Value);
-        Assert.Equal(bookingWithFlight.Id, result.Value[0].Id);
+        result.Value.Should().ContainSingle().Which.Id.Should().Be(bookingWithFlight.Id);
     }
 
     [Fact]
@@ -114,8 +111,8 @@ public sealed class ManagerBookingServiceTests
 
         var result = await CreateService().FilterBookingsAsync(new BookingSearchCriteria());
 
-        Assert.True(result.IsError);
-        Assert.Equal("Bookings.LoadFailed", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Bookings.LoadFailed");
     }
 
     [Fact]
@@ -129,7 +126,7 @@ public sealed class ManagerBookingServiceTests
             ArrivalAirport = "CDG"
         });
 
-        Assert.True(result.IsError);
-        Assert.Equal("Flights.LoadFailed", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Flights.LoadFailed");
     }
 }

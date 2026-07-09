@@ -14,7 +14,7 @@ public sealed class ImportResultTests
             TotalRows = 3
         };
 
-        Assert.Equal(2, result.ValidRows);
+        result.ValidRows.Should().Be(2);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public sealed class ImportResultTests
             ]
         };
 
-        Assert.Equal(2, result.FailedRows);
+        result.FailedRows.Should().Be(2);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public sealed class ImportResultTests
             Errors = [new ValidationError { Field = "File", Message = "missing" }]
         };
 
-        Assert.True(result.HasErrors);
+        result.HasErrors.Should().BeTrue();
     }
 
     [Fact]
@@ -49,6 +49,6 @@ public sealed class ImportResultTests
     {
         var result = new ImportResult { ValidFlights = [Builders.NewFlight()] };
 
-        Assert.False(result.HasErrors);
+        result.HasErrors.Should().BeFalse();
     }
 }

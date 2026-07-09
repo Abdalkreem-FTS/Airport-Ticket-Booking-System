@@ -23,7 +23,7 @@ public sealed class TransactionIntegrationTests
             scope.Rollback();
         }
 
-        Assert.Equal(5, EconomySeats(await harness.ReloadFlightAsync(flight)));
+        EconomySeats(await harness.ReloadFlightAsync(flight)).Should().Be(5);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public sealed class TransactionIntegrationTests
             await SetEconomySeatsAsync(harness, flight.Id, 0);
         }
 
-        Assert.Equal(5, EconomySeats(await harness.ReloadFlightAsync(flight)));
+        EconomySeats(await harness.ReloadFlightAsync(flight)).Should().Be(5);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public sealed class TransactionIntegrationTests
             await scope.CommitAsync();
         }
 
-        Assert.Equal(1, EconomySeats(await harness.ReloadFlightAsync(flight)));
+        EconomySeats(await harness.ReloadFlightAsync(flight)).Should().Be(1);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class TransactionIntegrationTests
 
         // A fresh read within the same transaction reflects the staged (not yet committed) write.
         var rereadWithinTransaction = await harness.FlightRepository.GetByIdAsync(flight.Id);
-        Assert.Equal(1, EconomySeats(rereadWithinTransaction.Value));
+        EconomySeats(rereadWithinTransaction.Value).Should().Be(1);
 
         scope.Rollback();
     }
@@ -80,8 +80,8 @@ public sealed class TransactionIntegrationTests
         // No await separates the two Begin calls, so both observe the same ambient (async-local) transaction.
         using var _ = harness.TransactionFactory.Begin(IsolationLevel.Serializable);
 
-        Assert.Throws<InvalidOperationException>(
-            () => harness.TransactionFactory.Begin(IsolationLevel.Serializable));
+        var act = () => harness.TransactionFactory.Begin(IsolationLevel.Serializable);
+        act.Should().Throw<InvalidOperationException>();
     }
 
     private static async Task SetEconomySeatsAsync(IntegrationTestHarness harness, Guid flightId, int seats)
@@ -89,7 +89,7 @@ public sealed class TransactionIntegrationTests
         var flight = (await harness.FlightRepository.GetByIdAsync(flightId)).Value;
         flight.ClassPrices.Single().AvailableSeats = seats;
         var update = await harness.FlightRepository.UpdateAsync(flight);
-        Assert.True(update.IsSuccess);
+        update.IsSuccess.Should().BeTrue();
     }
 
     private static int EconomySeats(Flight flight) => flight.ClassPrices.Single().AvailableSeats;

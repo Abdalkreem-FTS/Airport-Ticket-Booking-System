@@ -1,4 +1,3 @@
-using ATBS.Console.Models.Enums;
 using ATBS.Console.Validation;
 using ATBS.Tests.TestSupport;
 
@@ -13,7 +12,7 @@ public sealed class FlightValidatorTests
     {
         var result = _validator.Validate(Builders.NewFlight());
 
-        Assert.True(result.IsValid);
+        result.IsValid.Should().BeTrue();
     }
 
     [Fact]
@@ -21,16 +20,15 @@ public sealed class FlightValidatorTests
     {
         var result = _validator.Validate(Builders.NewFlight(flightNumber: ""));
 
-        Assert.Contains(result.Errors, error => error.ErrorMessage == FlightValidationRules.RequiredMessage);
+        result.Errors.Should().Contain(error => error.ErrorMessage == FlightValidationRules.RequiredMessage);
     }
 
     [Fact]
     public void Validate_Fails_WhenDestinationCountryEqualsDepartureCountry()
     {
-        var result = _validator.Validate(
-            Builders.NewFlight(departureCountry: "Jordan", destinationCountry: "jordan"));
+        var result = _validator.Validate(Builders.NewFlight(departureCountry: "Jordan", destinationCountry: "jordan"));
 
-        Assert.Contains(result.Errors,
+        result.Errors.Should().Contain(
             error => error.ErrorMessage == FlightValidationRules.DifferentDestinationCountryMessage);
     }
 
@@ -39,7 +37,7 @@ public sealed class FlightValidatorTests
     {
         var result = _validator.Validate(Builders.NewFlight(departureAirport: "AMM", arrivalAirport: "amm"));
 
-        Assert.Contains(result.Errors, error => error.ErrorMessage == FlightValidationRules.DifferentArrivalAirportMessage);
+        result.Errors.Should().Contain(error => error.ErrorMessage == FlightValidationRules.DifferentArrivalAirportMessage);
     }
 
     [Fact]
@@ -47,7 +45,7 @@ public sealed class FlightValidatorTests
     {
         var result = _validator.Validate(Builders.NewFlight(departureDate: DateTimeOffset.UtcNow.AddDays(-1)));
 
-        Assert.Contains(result.Errors, error => error.ErrorMessage == FlightValidationRules.FutureDepartureDateMessage);
+        result.Errors.Should().Contain(error => error.ErrorMessage == FlightValidationRules.FutureDepartureDateMessage);
     }
 
     [Fact]
@@ -55,7 +53,7 @@ public sealed class FlightValidatorTests
     {
         var result = _validator.Validate(Builders.NewFlight(capacity: 0));
 
-        Assert.Contains(result.Errors, error => error.ErrorMessage == FlightValidationRules.PositiveCapacityMessage);
+        result.Errors.Should().Contain(error => error.ErrorMessage == FlightValidationRules.PositiveCapacityMessage);
     }
 
     [Fact]
@@ -63,7 +61,7 @@ public sealed class FlightValidatorTests
     {
         var result = _validator.Validate(Builders.NewFlight(classPrices: []));
 
-        Assert.Contains(result.Errors, error => error.ErrorMessage == FlightValidationRules.AtLeastOneClassMessage);
+        result.Errors.Should().Contain(error => error.ErrorMessage == FlightValidationRules.AtLeastOneClassMessage);
     }
 
     [Fact]
@@ -71,7 +69,7 @@ public sealed class FlightValidatorTests
     {
         var result = _validator.Validate(Builders.NewFlight(classPrices: [Builders.NewClassPrice(price: 0m, availableSeats: 5)]));
 
-        Assert.Contains(result.Errors, error => error.ErrorMessage == FlightValidationRules.PositiveClassPriceMessage);
+        result.Errors.Should().Contain(error => error.ErrorMessage == FlightValidationRules.PositiveClassPriceMessage);
     }
 
     [Fact]
@@ -79,7 +77,7 @@ public sealed class FlightValidatorTests
     {
         var result = _validator.Validate(Builders.NewFlight(classPrices: [Builders.NewClassPrice(price: 100m, availableSeats: -1)]));
 
-        Assert.Contains(result.Errors, error => error.ErrorMessage == FlightValidationRules.NonNegativeClassSeatsMessage);
+        result.Errors.Should().Contain(error => error.ErrorMessage == FlightValidationRules.NonNegativeClassSeatsMessage);
     }
 
     [Fact]
@@ -87,6 +85,6 @@ public sealed class FlightValidatorTests
     {
         var result = _validator.Validate(Builders.NewFlight(capacity: 5, classPrices: [Builders.NewClassPrice()]));
 
-        Assert.Contains(result.Errors, error => error.ErrorMessage == FlightValidationRules.SeatsWithinCapacityMessage);
+        result.Errors.Should().Contain(error => error.ErrorMessage == FlightValidationRules.SeatsWithinCapacityMessage);
     }
 }

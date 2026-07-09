@@ -31,18 +31,18 @@ public sealed class FlightImportIntegrationTests
 
         var result = await harness.FlightImportService.ImportAsync(csvPath);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(3, result.Value.TotalRows);
-        Assert.Equal(2, result.Value.ValidFlights.Count);
-        Assert.NotEmpty(result.Value.Errors);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.TotalRows.Should().Be(3);
+        result.Value.ValidFlights.Should().HaveCount(2);
+        result.Value.Errors.Should().NotBeEmpty();
 
         // The two valid flights are actually on disk with their mapped values.
         var persisted = (await harness.FlightRepository.GetAllAsync()).Value;
-        Assert.Equal(2, persisted.Count);
-        Assert.Contains(persisted, flight => flight.FlightNumber == "RJ100" && flight.Capacity == 100);
-        Assert.Equal(2, Assert.Single(persisted, flight => flight.FlightNumber == "RJ200").ClassPrices.Count);
+        persisted.Should().HaveCount(2);
+        persisted.Should().Contain(flight => flight.FlightNumber == "RJ100" && flight.Capacity == 100);
+        persisted.Should().ContainSingle(flight => flight.FlightNumber == "RJ200").Which.ClassPrices.Should().HaveCount(2);
 
-        Assert.Empty(harness.PendingTransactionLogFiles);
+        harness.PendingTransactionLogFiles.Should().BeEmpty();
     }
 
     [Fact]
@@ -55,10 +55,10 @@ public sealed class FlightImportIntegrationTests
 
         var result = await harness.FlightImportService.ImportAsync(csvPath);
 
-        Assert.True(result.IsSuccess);
-        Assert.Empty(result.Value.ValidFlights);
-        Assert.NotEmpty(result.Value.Errors);
-        Assert.Empty((await harness.FlightRepository.GetAllAsync()).Value);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.ValidFlights.Should().BeEmpty();
+        result.Value.Errors.Should().NotBeEmpty();
+        (await harness.FlightRepository.GetAllAsync()).Value.Should().BeEmpty();
     }
 
     [Fact]
@@ -71,10 +71,10 @@ public sealed class FlightImportIntegrationTests
 
         var preview = await harness.FlightImportService.PreviewImportAsync(csvPath);
 
-        Assert.True(preview.IsSuccess);
-        Assert.Single(preview.Value.ValidFlights);
+        preview.IsSuccess.Should().BeTrue();
+        preview.Value.ValidFlights.Should().ContainSingle();
         // Preview is read-only: nothing was written to the flights table.
-        Assert.Empty((await harness.FlightRepository.GetAllAsync()).Value);
+        (await harness.FlightRepository.GetAllAsync()).Value.Should().BeEmpty();
     }
 
     private static string WriteCsv(IntegrationTestHarness harness, params string[] lines)

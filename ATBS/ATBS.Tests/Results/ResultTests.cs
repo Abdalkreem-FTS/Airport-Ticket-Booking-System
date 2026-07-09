@@ -9,10 +9,10 @@ public sealed class ResultTests
     {
         Result<int> result = 42;
 
-        Assert.True(result.IsSuccess);
-        Assert.False(result.IsError);
-        Assert.Equal(42, result.Value);
-        Assert.Empty(result.Errors);
+        result.IsSuccess.Should().BeTrue();
+        result.IsError.Should().BeFalse();
+        result.Value.Should().Be(42);
+        result.Errors.Should().BeEmpty();
     }
 
     [Fact]
@@ -20,9 +20,9 @@ public sealed class ResultTests
     {
         Result<int> result = Error.Conflict("Seat.Taken", "already booked");
 
-        Assert.True(result.IsError);
-        Assert.Equal("Seat.Taken", result.TopError.Code);
-        Assert.Equal(ErrorType.Conflict, result.TopError.Type);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Seat.Taken");
+        result.TopError.Type.Should().Be(ErrorType.Conflict);
     }
 
     [Fact]
@@ -34,9 +34,9 @@ public sealed class ResultTests
             Error.Validation("B", "b")
         };
 
-        Assert.True(result.IsError);
-        Assert.Equal(2, result.Errors.Count);
-        Assert.Equal("A", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.Errors.Should().HaveCount(2);
+        result.TopError.Code.Should().Be("A");
     }
 
     [Fact]
@@ -44,8 +44,8 @@ public sealed class ResultTests
     {
         Result<int> result = new List<Error>();
 
-        Assert.True(result.IsError);
-        Assert.Equal("Result.EmptyErrors", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Result.EmptyErrors");
     }
 
     [Fact]
@@ -53,8 +53,8 @@ public sealed class ResultTests
     {
         var result = Result<string>.From(null!);
 
-        Assert.True(result.IsError);
-        Assert.Equal("Result.NullValue", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Result.NullValue");
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public sealed class ResultTests
 
         var text = result.Match(value => $"value:{value}", _ => "error");
 
-        Assert.Equal("value:7", text);
+        text.Should().Be("value:7");
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public sealed class ResultTests
 
         var text = result.Match(_ => "value", errors => $"errors:{errors.Count}");
 
-        Assert.Equal("errors:1", text);
+        text.Should().Be("errors:1");
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed class ResultTests
     {
         Result<int> result = Error.NotFound("Missing", "gone");
 
-        Assert.Equal(0, result.Value);
-        Assert.Single(result.Errors);
+        result.Value.Should().Be(0);
+        result.Errors.Should().ContainSingle();
     }
 }

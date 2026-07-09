@@ -53,12 +53,12 @@ public sealed class BookingServiceTests
             Class = FlightClass.Economy
         });
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(passengerId, result.Value.PassengerId);
-        Assert.Equal(flightId, result.Value.FlightId);
-        Assert.Equal(FlightClass.Economy, result.Value.Class);
-        Assert.Equal(250m, result.Value.Price);
-        Assert.Equal(2, flight.ClassPrices.Single().AvailableSeats);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.PassengerId.Should().Be(passengerId);
+        result.Value.FlightId.Should().Be(flightId);
+        result.Value.Class.Should().Be(FlightClass.Economy);
+        result.Value.Price.Should().Be(250m);
+        flight.ClassPrices.Single().AvailableSeats.Should().Be(2);
         _flights.Verify(f => f.UpdateAsync(flight), Times.Once);
         _bookings.Verify(b => b.AddAsync(It.Is<Booking>(booking => booking.FlightId == flightId && booking.PassengerId == passengerId)), Times.Once);
     }
@@ -70,8 +70,8 @@ public sealed class BookingServiceTests
 
         var result = await CreateService().BookFlightAsync(new CreateBookingRequest());
 
-        Assert.True(result.IsError);
-        Assert.Equal("Passengers.NotFound", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Passengers.NotFound");
         _flights.Verify(f => f.GetByIdAsync(It.IsAny<Guid>()), Times.Never);
     }
 
@@ -83,8 +83,8 @@ public sealed class BookingServiceTests
 
         var result = await CreateService().BookFlightAsync(new CreateBookingRequest());
 
-        Assert.True(result.IsError);
-        Assert.Equal("Flights.NotFound", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Flights.NotFound");
     }
 
     [Fact]
@@ -98,9 +98,9 @@ public sealed class BookingServiceTests
             Class = FlightClass.Economy
         });
 
-        Assert.True(result.IsError);
-        Assert.Equal("Flights.ClassNotFound", result.TopError.Code);
-        Assert.Equal(ErrorType.NotFound, result.TopError.Type);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Flights.ClassNotFound");
+        result.TopError.Type.Should().Be(ErrorType.NotFound);
     }
 
     [Fact]
@@ -114,9 +114,9 @@ public sealed class BookingServiceTests
             Class = FlightClass.Economy
         });
 
-        Assert.True(result.IsError);
-        Assert.Equal("Flights.NoSeats", result.TopError.Code);
-        Assert.Equal(ErrorType.Conflict, result.TopError.Type);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Flights.NoSeats");
+        result.TopError.Type.Should().Be(ErrorType.Conflict);
         _bookings.Verify(b => b.AddAsync(It.IsAny<Booking>()), Times.Never);
     }
 
@@ -132,8 +132,8 @@ public sealed class BookingServiceTests
             Class = FlightClass.Economy
         });
 
-        Assert.True(result.IsError);
-        Assert.Equal("Bookings.SaveFailed", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Bookings.SaveFailed");
     }
 
     [Fact]
@@ -149,9 +149,9 @@ public sealed class BookingServiceTests
 
         var result = await CreateService().CancelBookingAsync(passengerId, bookingId);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(6, flight.ClassPrices.Single().AvailableSeats);
-        Assert.Equal(BookingStatus.Cancelled, booking.Status);
+        result.IsSuccess.Should().BeTrue();
+        flight.ClassPrices.Single().AvailableSeats.Should().Be(6);
+        booking.Status.Should().Be(BookingStatus.Cancelled);
         _bookings.Verify(b => b.UpdateAsync(booking), Times.Once);
     }
 
@@ -162,9 +162,9 @@ public sealed class BookingServiceTests
 
         var result = await CreateService().CancelBookingAsync(Guid.NewGuid(), Guid.NewGuid());
 
-        Assert.True(result.IsError);
-        Assert.Equal("Bookings.NotOwned", result.TopError.Code);
-        Assert.Equal(ErrorType.Forbidden, result.TopError.Type);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Bookings.NotOwned");
+        result.TopError.Type.Should().Be(ErrorType.Forbidden);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public sealed class BookingServiceTests
 
         var result = await CreateService().CancelBookingAsync(passengerId, Guid.NewGuid());
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         _flights.Verify(f => f.GetByIdAsync(It.IsAny<Guid>()), Times.Never);
         _bookings.Verify(b => b.UpdateAsync(It.IsAny<Booking>()), Times.Never);
     }
@@ -187,8 +187,8 @@ public sealed class BookingServiceTests
 
         var result = await CreateService().CancelBookingAsync(Guid.NewGuid(), Guid.NewGuid());
 
-        Assert.True(result.IsError);
-        Assert.Equal("Bookings.NotFound", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Bookings.NotFound");
     }
 
     // ---- ModifyBookingAsync ----------------------------------------------------------------------
@@ -211,11 +211,11 @@ public sealed class BookingServiceTests
             NewClass = FlightClass.Business
         });
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(FlightClass.Business, result.Value.Class);
-        Assert.Equal(300m, result.Value.Price);
-        Assert.Equal(6, flight.ClassPrices.Single(price => price.Class == FlightClass.Economy).AvailableSeats);
-        Assert.Equal(1, flight.ClassPrices.Single(price => price.Class == FlightClass.Business).AvailableSeats);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Class.Should().Be(FlightClass.Business);
+        result.Value.Price.Should().Be(300m);
+        flight.ClassPrices.Single(price => price.Class == FlightClass.Economy).AvailableSeats.Should().Be(6);
+        flight.ClassPrices.Single(price => price.Class == FlightClass.Business).AvailableSeats.Should().Be(1);
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public sealed class BookingServiceTests
             NewClass = FlightClass.Economy
         });
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         _flights.Verify(f => f.UpdateAsync(It.IsAny<Flight>()), Times.Never);
         _bookings.Verify(b => b.UpdateAsync(It.IsAny<Booking>()), Times.Never);
     }
@@ -251,8 +251,8 @@ public sealed class BookingServiceTests
             NewClass = FlightClass.Business
         });
 
-        Assert.True(result.IsError);
-        Assert.Equal("Bookings.Cancelled", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Bookings.Cancelled");
     }
 
     [Fact]
@@ -271,8 +271,8 @@ public sealed class BookingServiceTests
             NewClass = FlightClass.Business
         });
 
-        Assert.True(result.IsError);
-        Assert.Equal("Flights.NoSeats", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Flights.NoSeats");
     }
 
     [Fact]
@@ -285,8 +285,8 @@ public sealed class BookingServiceTests
 
         var result = await CreateService().GetPassengerBookingsAsync(passengerId);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal([newer.Id, older.Id], result.Value.Select(booking => booking.Id));
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Select(booking => booking.Id).Should().Equal(newer.Id, older.Id);
     }
 
     [Fact]
@@ -296,7 +296,7 @@ public sealed class BookingServiceTests
 
         var result = await CreateService().GetPassengerBookingsAsync(Guid.NewGuid());
 
-        Assert.True(result.IsError);
-        Assert.Equal("Bookings.LoadFailed", result.TopError.Code);
+        result.IsError.Should().BeTrue();
+        result.TopError.Code.Should().Be("Bookings.LoadFailed");
     }
 }
