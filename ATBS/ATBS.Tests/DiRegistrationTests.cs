@@ -11,11 +11,11 @@ public sealed class DiRegistrationTests
     {
         using var provider = new ServiceCollection().AddAppServices().BuildServiceProvider();
 
-        Assert.NotNull(provider.GetRequiredService<IFileTransactionFactory>());
-        Assert.NotNull(provider.GetRequiredService<ITransactionalFileStorage>());
-        Assert.NotNull(provider.GetRequiredService<IBookingService>());
-        Assert.NotNull(provider.GetRequiredService<IFlightService>());
-        Assert.NotNull(provider.GetRequiredService<IManagerBookingService>());
-        Assert.NotNull(provider.GetRequiredService<IFlightImportService>());
+        provider.GetRequiredService<IFileTransactionFactory>().Should().NotBeNull();
+        provider.GetRequiredService<ITransactionalFileStorage>().Should().NotBeNull();
+        provider.GetRequiredService<IBookingService>().Should().NotBeNull();
+        provider.GetRequiredService<IFlightService>().Should().NotBeNull();
+        provider.GetRequiredService<IManagerBookingService>().Should().NotBeNull();
+        provider.GetRequiredService<IFlightImportService>().Should().NotBeNull();
     }
 }
