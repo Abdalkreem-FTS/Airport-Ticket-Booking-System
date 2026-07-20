@@ -1,14 +1,19 @@
 # Airport Ticket Booking System
 
-A console-based airport ticket booking system with a clean and interactive terminal UI powered by Spectre.Console.
+A .NET 10 console application for booking airport flight tickets, with an interactive
+terminal UI powered by Spectre.Console. Passengers can book, search, view, cancel, and
+modify flights; managers can bulk-import flights from CSV, filter bookings, and inspect
+validation rules.
+
+Data lives in plain JSON files. Rather than reading and overwriting those files naively,
+every change runs through a small **ACID transaction engine built on top of the file
+system** — with SQL-style isolation levels, locking, MVCC snapshots, a write-ahead log,
+and crash recovery. See [ARCHITECTURE.md](ARCHITECTURE.md) for how that works.
 
 ## Features
 
-- Book flights for passengers
-- Search available flights
-- View passenger bookings
-- Cancel or modify bookings
-- Manager tools to import flights and manage bookings
+- Book, search, view, cancel, and modify flights for passengers
+- Manager tools: import flights from CSV, filter bookings, inspect validation rules
 
 ## Prerequisites
 
@@ -20,6 +25,7 @@ A console-based airport ticket booking system with a clean and interactive termi
 ```bash
 git clone https://github.com/Abdalkreem-FTS/Airport-Ticket-Booking-System
 
-cd ATBS
+cd Airport-Ticket-Booking-System
 
-dotnet run
+dotnet run --project ATBS.Console
+```
